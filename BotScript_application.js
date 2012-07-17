@@ -47,27 +47,30 @@ BotScript.prototype.MoveAvatar = function(frametime) {
 		
 		//Set orientation and placeables + animations if walk = true
 		//Add later a amount to be the maximum of movement and teleport to the destination.
-		this.me.placeable.SetPosition(finalMovementx, yNow, finalMovementz);
 		
-		angleOfOrientation = Math.atan2(Math.abs(toMoves.y), Math.abs(toMoves.x));
+		tm.pos.x = finalMovementx;
+		tm.pos.z = finalMovementz;
+		
+ 		angleOfOrientation = Math.atan2(Math.abs(toMoves.y), Math.abs(toMoves.x));
 		print (toMoves.x, toMoves.y);
 
-		if (toMoves.y>=0 && toMoves.x>=0) 	
+		if (toMoves.y>=0 && toMoves.x>=0){ 	
 			tm.rot.y = (Math.PI + angleOfOrientation) * (180/Math.PI);
-			
-		else if (toMoves.y>=0 && toMoves.x<0)
+			tm.rot.y += 15;
+		}
+		else if (toMoves.y>=0 && toMoves.x<0){
 			tm.rot.y = (Math.PI - angleOfOrientation) * (180/Math.PI);
-			
-		else if (toMoves.y<0 && toMoves.x>=0) 
+			tm.rot.y +=15;
+		}
+		else if (toMoves.y<0 && toMoves.x>=0){ 
 			tm.rot.y = (2*Math.PI - angleOfOrientation) * (180/Math.PI);
-
-		else if (toMoves.y<0 && toMoves.x<0) 
+			tm.rot.y += 15;
+		}
+		else if (toMoves.y<0 && toMoves.x<0){ 
 			tm.rot.y = angleOfOrientation * (180/Math.PI);
-			
-		print (tm.rot.y);
-		angle.y = angle.y * (180/Math.PI);
-		tm = this.me.placeable.transform;
-		tm.rot.y=angle.y;
+			tm.rot.y += 15;
+		}
+		
 		this.me.placeable.transform = tm;	
 
 

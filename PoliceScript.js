@@ -281,23 +281,25 @@ PoliceScript.prototype.MovePolice = function(frametime){
 	this.me.placeable.transform = tm;
 	
 	angleOfOrientation = Math.atan2(Math.abs(this.relativeLat), Math.abs(this.relativeLon));
-	print (this.relativeLat, this.relativeLon);
-	
-	if (this.relativeLat>=0 && this.relativeLon>=0) 	
-		tm.rot.y = angleOfOrientation * (180/Math.PI);
-		
-	else if (this.relativeLat>=0 && this.relativeLon<0)
-		tm.rot.y = (Math.PI - angleOfOrientation) * (180/Math.PI);
-		
-	else if (this.relativeLat<0 && this.relativeLon>=0) 
-		tm.rot.y = (2*Math.PI - angleOfOrientation) * (180/Math.PI);
 
-	else if (this.relativeLat<0 && this.relativeLon<0) 
+	if (this.relativeLat>=0 && this.relativeLon>=0){ 	
 		tm.rot.y = (Math.PI + angleOfOrientation) * (180/Math.PI);
-
-
+		tm.rot.y += 15;
+	}
+	else if (this.relativeLat>=0 && this.relativeLon<0){
+		tm.rot.y = (Math.PI - angleOfOrientation) * (180/Math.PI);
+		tm.rot.y +=15;
+	}
+	else if (this.relativeLat<0 && this.relativeLon>=0){ 
+		tm.rot.y = (2*Math.PI - angleOfOrientation) * (180/Math.PI);
+		tm.rot.y += 15;
+	}
+	else if (this.relativeLat<0 && this.relativeLon<0){ 
+		tm.rot.y = angleOfOrientation * (180/Math.PI);
+		tm.rot.y += 15;
+	}
 	
-	this.me.placeable.transform = tm;
+	this.me.placeable.transform = tm;	
 	
 	var pos = this.me.placeable.Position();
 	var tm = this.me.placeable.transform;
