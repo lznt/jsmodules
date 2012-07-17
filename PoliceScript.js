@@ -1,5 +1,15 @@
 function PoliceScript (entity, comp){
-
+	//Constructing variables we need
+	/*
+	this.move: Keeps in track not to go to MovePolice function before calculations have been done.
+	this.calc: Keeps track that we do not go to Calculate or MovePolice before we have gotten the position where to go.
+	this.calculate: Keeps track that we do not go to calculate after its been ran, unless calc has been ran again.
+	this.dest: The destination variable for GetDestination and Calculate to use.
+	this.totalLat, this.totalLon: For calculate function the totalLat and totalLon to determine when to stop moving.
+	this.setted: If entity has been set for the first time, this is true. If not then false.
+	rnd: The array of 16 spots(0-15). For the random function to determine starting point.
+	this.curPos: Current position of avatar, see constructor end to check what different numbers present.
+	*/
 	this.me = entity;
 	frame.Updated.connect(this, this.Update);
 	var avatarurl = "default_avatar.avatar";
@@ -9,33 +19,32 @@ function PoliceScript (entity, comp){
 	this.move = false;
 	this.calc = true;
 	this.calculate = false;
-	var rnd = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
-	this.curPos = 0 //TO FIX = random(rnd);
 	this.dest;
 	this.totalLat;
 	this.totalLon;
-	//this.setted = false;
-	
-	
+	this.setted = false;
+	var rnd = new Array(16);
+	this.curPos = random(rnd.length);
+	print (this.curPos);
 	
 	//Initialize positions
-	/* Referencelist for letters
-	A = ASEMAKTORIK = array([65.014685,25.471802])
-	B = ASEMAKKIRKK = array([65.014172,25.473626])
-	C = ASEMAKISOK = array([65.013642,25.475589])
-	D = ASEMAKUUSIK = array([65.013117,25.477477])
-	E = TORIKHALLIK = array([65.013955,25.470729])
-	F = KIRKKOKHALLIK = array([65.013484,25.472564])
-	G = KIRKKOKHALLIK2 = array([65.013212,25.472209])
-	H = ISOKHALLIK = array([65.012691,25.474184])
-	I = TORIKPAKKAHK = array([65.013185,25.469527])
-	J = KIRKKOKPAKKAHK = array([65.01265,25.471405])
-	K = ISOKPAKKAHK = array([65.012124,25.473433])
-	L = UUSIKPAKKAHK = array([65.011607,25.475353])
-	M = TORIKKAUPPURIK = array([65.01231,25.468261])
-	N = KIRKKOKKAUPPURIK = array([65.011798,25.470171])
-	O = ISOKKAUPPURIK = array([65.011267,25.472134])
-	P = UUSIKKAUPPURIK = array([65.010742,25.474119])
+	/* Referencelist for numbers
+	1 = ASEMAKTORIK = array([65.014685,25.471802])
+	2 = ASEMAKKIRKK = array([65.014172,25.473626])
+	3 = ASEMAKISOK = array([65.013642,25.475589])
+	4 = ASEMAKUUSIK = array([65.013117,25.477477])
+	5 = TORIKHALLIK = array([65.013955,25.470729])
+	6 = KIRKKOKHALLIK = array([65.013484,25.472564])
+	7 = KIRKKOKHALLIK2 = array([65.013212,25.472209])
+	8 = ISOKHALLIK = array([65.012691,25.474184])
+	9 = TORIKPAKKAHK = array([65.013185,25.469527])
+	10 = KIRKKOKPAKKAHK = array([65.01265,25.471405])
+	11 = ISOKPAKKAHK = array([65.012124,25.473433])
+	12 = UUSIKPAKKAHK = array([65.011607,25.475353])
+	13 = TORIKKAUPPURIK = array([65.01231,25.468261])
+	14 = KIRKKOKKAUPPURIK = array([65.011798,25.470171])
+	15 = ISOKKAUPPURIK = array([65.011267,25.472134])
+	16 = UUSIKKAUPPURIK = array([65.010742,25.474119])
 	*/
 
 	this.points = [];
@@ -139,17 +148,13 @@ function PoliceScript (entity, comp){
 }
 
 
-
-PoliceScript.prototype.GetDestination = function() {
-	//NOT WORKING IF curPos is not 0
-	var index = random(this.points[this.curPos].next.length);
-	this.curPos = this.points[this.curPos].next[index];
-	this.dest = [this.points[this.curPos].lat, this.points[this.curPos].lon];
+function random(n) {
+	seed = new Date().getTime();
+	seed = (seed*9301+49297) % 233280;
 	
-	this.calc = false;
-	this.calculate = true;
-
+	return (Math.floor((seed/(233280.0)* n)));
 }
+
 
 PoliceScript.prototype.Calculate = function(){
 
@@ -188,18 +193,31 @@ PoliceScript.prototype.Calculate = function(){
 	this.totalLat = 0;
 	this.totalLon = 0;
 	
-	/*if (this.setted == false){
+	if (this.setted == false){
 		var tm = this.me.placeable.transform;
-		tm.pos.x = this.relativeLat;
-		tm.pos.z = this.relativeLon;
+		tm.pos.x = longitudeInMeters;
+		tm.pos.z = latitudeInMeters;
+		tm.pos.y = -4;
 		this.me.placeable.transform = tm;
 		this.setted = true;
-	}*/
-	
-	this.calculate = false;
-	this.move = true;
+		this.calc = true;
+		this.calculate = false;
+		this.me.placeable.visible = true;
+	}else{
+		this.calculate = false;
+		this.move = true;
+	}
 }
 
+PoliceScript.prototype.GetDestination = function() {
+
+	var index = random(this.points[this.curPos].next.length);
+	this.curPos = this.points[this.curPos].next[index];
+	this.dest = [this.points[this.curPos].lat, this.points[this.curPos].lon];
+	this.calc = false;
+	this.calculate = true;
+
+}
 
 PoliceScript.prototype.CalcLong = function(lon1, lon2, lat1, lat2){
 	var radius = 6371; // km
@@ -262,18 +280,22 @@ PoliceScript.prototype.MovePolice = function(frametime){
 	tm.pos.z = finalMovementz;
 	this.me.placeable.transform = tm;
 	
-	angleOfOrientation = Math.atan2(Math.abs(this.relativeLat), Math.abs(this.relativeLon)) * (180/Math.PI);
-	if (this.relativeLat>=0 && this.relativeLon>=0) 
-		tm.rot.y = angleOfOrientation;
+	angleOfOrientation = Math.atan2(Math.abs(this.relativeLat), Math.abs(this.relativeLon));
+	print (this.relativeLat, this.relativeLon);
 	
-	else if (this.relativeLat>=0 && this.relativeLon<0) 
-		tm.rot.y = Math.PI - angleOfOrientation;
-	
-	else if (this.relativeLat<0 && this.relativeLon>=0) 
-		tm.rot.y = 2*Math.PI - angleOfOrientation;
+	if (this.relativeLat>=0 && this.relativeLon>=0) 	
+		tm.rot.y = angleOfOrientation * (180/Math.PI);
 		
+	else if (this.relativeLat>=0 && this.relativeLon<0)
+		tm.rot.y = (Math.PI - angleOfOrientation) * (180/Math.PI);
+		
+	else if (this.relativeLat<0 && this.relativeLon>=0) 
+		tm.rot.y = (2*Math.PI - angleOfOrientation) * (180/Math.PI);
+
 	else if (this.relativeLat<0 && this.relativeLon<0) 
-		tm.rot.y = Math.PI + angleOfOrientation;
+		tm.rot.y = (Math.PI + angleOfOrientation) * (180/Math.PI);
+
+
 	
 	this.me.placeable.transform = tm;
 	
@@ -286,21 +308,17 @@ PoliceScript.prototype.MovePolice = function(frametime){
 	if (this.totalLat > Math.abs(this.relativeLat) || this.totalLon > Math.abs(this.relativeLon)) {
 		this.move = false;
 		this.calc = true;
+
 	}
 }
 
 PoliceScript.prototype.UpdateClient = function(frametime){
 
-		this.me.animationcontroller.SetAnimationSpeed('Run', '1.6');
-		this.me.animationcontroller.EnableAnimation('Run', true, 0.25, false);
+		this.me.animationcontroller.SetAnimationSpeed('Walk', '1.6');
+		this.me.animationcontroller.EnableAnimation('Walk', true, 0.25, false);
 }
 
-function random(n) {
-	seed = new Date().getTime();
-	seed = (seed*9301+49297) % 233280;
-	
-	return (Math.floor((seed/(233280.0)* n)));
-}
+
 
 PoliceScript.prototype.Update = function(frametime) {
 	if (server.IsRunning()){

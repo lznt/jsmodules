@@ -11,13 +11,13 @@ function BotScript(entity, comp) {
 BotScript.prototype.MoveAvatar = function(frametime) {	
 	//Set and get all the needed variables for moving, rotating and so on..
 		var time = frametime;
-		var speed = 1.6;
+		var speed = 5;
 		var pos = this.me.placeable.Position();
 		var yNow = pos.y;
 		var xNow = pos.x;
 		var zNow = pos.z;
 		var angle = this.me.dynamiccomponent.GetAttribute("angleOfOrientation");
-		
+		var tm = this.me.placeable.transform;
 		var toMoves = this.me.dynamiccomponent.GetAttribute("toMoves");
 		var ratios = this.me.dynamiccomponent.GetAttribute("ratios");
 		
@@ -48,8 +48,23 @@ BotScript.prototype.MoveAvatar = function(frametime) {
 		//Set orientation and placeables + animations if walk = true
 		//Add later a amount to be the maximum of movement and teleport to the destination.
 		this.me.placeable.SetPosition(finalMovementx, yNow, finalMovementz);
-
 		
+		angleOfOrientation = Math.atan2(Math.abs(toMoves.y), Math.abs(toMoves.x));
+		print (toMoves.x, toMoves.y);
+
+		if (toMoves.y>=0 && toMoves.x>=0) 	
+			tm.rot.y = (Math.PI + angleOfOrientation) * (180/Math.PI);
+			
+		else if (toMoves.y>=0 && toMoves.x<0)
+			tm.rot.y = (Math.PI - angleOfOrientation) * (180/Math.PI);
+			
+		else if (toMoves.y<0 && toMoves.x>=0) 
+			tm.rot.y = (2*Math.PI - angleOfOrientation) * (180/Math.PI);
+
+		else if (toMoves.y<0 && toMoves.x<0) 
+			tm.rot.y = angleOfOrientation * (180/Math.PI);
+			
+		print (tm.rot.y);
 		angle.y = angle.y * (180/Math.PI);
 		tm = this.me.placeable.transform;
 		tm.rot.y=angle.y;
