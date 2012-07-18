@@ -6,6 +6,12 @@ function BotScript(entity, comp) {
     r.ref = avatarurl;
     this.me.avatar.appearanceRef = r;
 	this.totals = new float3(0,0,0);
+				
+	//this.me.CreateComponent('EC_Script','1');
+	co=this.me.GetOrCreateComponent('EC_Script', '1');
+	co.className = "BotAndPoliceApp.BotAndPolice";
+	//this.me.script.className = "BotAndPoliceApp.BotAndPolice";
+	
 }
 
 BotScript.prototype.MoveAvatar = function(frametime) {	
@@ -76,12 +82,13 @@ BotScript.prototype.MoveAvatar = function(frametime) {
 
 		if (this.totals.y > Math.abs(toMoves.y) || this.totals.x > Math.abs(toMoves.x)) {
 			this.me.dynamiccomponent.SetAttribute('ifToWalk', false);
+			
 		}
 	
 }
 
 BotScript.prototype.UpdateClient = function(frametime){
-	if (this.me.dynamiccomponent.GetAttribute("ifToWalk") == true){
+	if (this.me.dynamiccomponent.GetAttribute("ifToWalk") == true && this.me.dynamiccomponent.GetAttribute("busted") == false){
 		this.me.animationcontroller.SetAnimationSpeed('Walk', '0.60');
 		this.me.animationcontroller.EnableAnimation('Walk', true, 0.25, false);
 	}
@@ -89,13 +96,11 @@ BotScript.prototype.UpdateClient = function(frametime){
 		this.me.animationcontroller.DisableAllAnimations();
 }
 
-
 BotScript.prototype.Update = function(frametime) {
 	if (server.IsRunning()){
 		//Add all updates here
 		if(this.me.dynamiccomponent.GetAttribute("ifToWalk") == true)
 			this.MoveAvatar(frametime);
-		
 	}else
 		this.UpdateClient(frametime);
 		

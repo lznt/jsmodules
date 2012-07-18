@@ -26,7 +26,8 @@ function PoliceScript (entity, comp){
 	var rnd = new Array(16);
 	this.curPos = random(rnd.length);
 	print (this.curPos);
-	
+	co=this.me.GetOrCreateComponent('EC_Script', '1');
+	co.className = "BotAndPoliceApp.BotAndPolice";
 	//Initialize positions
 	/* Referencelist for numbers
 	1 = ASEMAKTORIK = array([65.014685,25.471802])
@@ -318,21 +319,22 @@ PoliceScript.prototype.UpdateClient = function(frametime){
 
 		this.me.animationcontroller.SetAnimationSpeed('Walk', '1.6');
 		this.me.animationcontroller.EnableAnimation('Walk', true, 0.25, false);
+
 }
 
 
 
 PoliceScript.prototype.Update = function(frametime) {
 	if (server.IsRunning()){
-
 		if(this.calc == true)
 			this.GetDestination();
-	else	
-		if(this.calculate == true)
-			this.Calculate();
-	else	
-		if(this.move == true)
-			this.MovePolice(frametime);
+		else		
+			if(this.calculate == true)
+				this.Calculate();
+		else	
+			if(this.move == true)
+				this.MovePolice(frametime);
 	}else
 		this.UpdateClient(frametime);
+		
 }
