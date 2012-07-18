@@ -7,10 +7,10 @@ function BotScript(entity, comp) {
     this.me.avatar.appearanceRef = r;
 	this.totals = new float3(0,0,0);
 				
-	//this.me.CreateComponent('EC_Script','1');
 	co=this.me.GetOrCreateComponent('EC_Script', '1');
 	co.className = "BotAndPoliceApp.BotAndPolice";
-	//this.me.script.className = "BotAndPoliceApp.BotAndPolice";
+	co2=this.me.GetOrCreateComponent('EC_Script', '2');
+	co2.className = "SprayScriptApp.SprayingScript"
 	
 }
 
@@ -58,7 +58,7 @@ BotScript.prototype.MoveAvatar = function(frametime) {
 		tm.pos.z = finalMovementz;
 		
  		angleOfOrientation = Math.atan2(Math.abs(toMoves.y), Math.abs(toMoves.x));
-		print (toMoves.x, toMoves.y);
+		//print (toMoves.x, toMoves.y);
 
 		if (toMoves.y>=0 && toMoves.x>=0){ 	
 			tm.rot.y = (Math.PI + angleOfOrientation) * (180/Math.PI);
@@ -82,7 +82,6 @@ BotScript.prototype.MoveAvatar = function(frametime) {
 
 		if (this.totals.y > Math.abs(toMoves.y) || this.totals.x > Math.abs(toMoves.x)) {
 			this.me.dynamiccomponent.SetAttribute('ifToWalk', false);
-			
 		}
 	
 }
@@ -99,7 +98,7 @@ BotScript.prototype.UpdateClient = function(frametime){
 BotScript.prototype.Update = function(frametime) {
 	if (server.IsRunning()){
 		//Add all updates here
-		if(this.me.dynamiccomponent.GetAttribute("ifToWalk") == true)
+		if(this.me.dynamiccomponent.GetAttribute("ifToWalk") == true && this.me.dynamiccomponent.GetAttribute("busted") == false)
 			this.MoveAvatar(frametime);
 	}else
 		this.UpdateClient(frametime);
