@@ -12,8 +12,8 @@ function MaterialScript(entity, comp) {
 
 MaterialScript.prototype.Spray = function(frametime){
 	var Logic = scene.GetEntityByName('Logic');
-	
-	if(Logic.dynamiccomponent.GetAttribute('Busted') == true){
+	this.Player = scene.GetEntityByName(this.me.dynamiccomponent.GetAttribute('PlayerName'));
+	if(Logic.dynamiccomponent.GetAttribute('Busted') == true && Player != null){
 		this.me.dynamiccomponent.SetAttribute('Spraying', false);
 		this.totalTime = 0;
 	
@@ -22,16 +22,15 @@ MaterialScript.prototype.Spray = function(frametime){
 		var playerId = this.me.dynamiccomponent.GetAttribute('PlayerId');
 		var playerTeam = this.me.dynamiccomponent.GetAttribute('PlayerTeam');
 		var playerPos = this.me.dynamiccomponent.GetAttribute('playerPos', playerPos);
-		var Player = scene.GetEntityByName(this.me.dynamiccomponent.GetAttribute('PlayerName'));
+		
 		var pos = this.me.placeable.Position();
 		var yNow = pos.y;
 		var xNow = pos.x;
 		var zNow = pos.z;
-		if(Player != null){
-			if(Player.dynamiccomponent.GetAttribute('rdyToSpray') == true)
-				this.totalTime = this.totalTime + frametime;
-				print('Increasing totalTime');
-		}
+		
+		
+		this.totalTime = this.totalTime + frametime;
+		
 		
 		//Calculate distance
 		var dist = Math.sqrt(Math.pow((xNow - playerPos.x), 2) + 
@@ -54,17 +53,20 @@ MaterialScript.prototype.Spray = function(frametime){
 				this.me.dynamiccomponent.SetAttribute('Spraying', false);
 			}
 			this.totalTime = 0;
+			this.Player.dynamiccomponent.SetAttribute('rdyToSpray', false);
 		}
 	}
 	
 }
 
 MaterialScript.prototype.Update = function(frametime) {
-	
+	this.Player = scene.GetEntityByName(this.me.dynamiccomponent.GetAttribute('PlayerName'));
 	if (server.IsRunning()){
-		if(this.me.dynamiccomponent.GetAttribute('Spraying') == true && this.me.dynamiccomponent.GetAttribute('screenName') == this.me.Name()){	
-			this.Spray(frametime);
-		}	
+		if(this.Player != null){
+			if(this.Player.dynamiccomponent.GetAttribute('rdyToSpray') == true && this.me.dynamiccomponent.GetAttribute('screenName') == this.me.Name()){	
+				this.Spray(frametime);
+			}
+		}
 	}else{
 			
 	}

@@ -37,6 +37,7 @@ ParticleScript.prototype.EnableSpray = function(frametime) {
 			this.me.particlesystem.enabled = false;
 			this.totalTime = 0;
 			this.me.dynamiccomponent.SetAttribute('Spraying', false);
+			
 		}
 			//print('Waiting');
 	}

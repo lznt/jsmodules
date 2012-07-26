@@ -8,6 +8,7 @@ function BotScript(entity, comp) {
 	this.totals = new float3(0,0,0);
 	this.me.dynamiccomponent.CreateAttribute('float3', 'particlePos');
 	this.me.dynamiccomponent.CreateAttribute('string', 'screenName');
+	this.me.dynamiccomponent.SetAttribute('Spraying', false);
 	this.totalTime = 0;
 	this.totalLat = 0;
 	this.totalLon = 0;
@@ -101,6 +102,7 @@ BotScript.prototype.Spraying = function(frametime){
 	Logic = scene.GetEntityByName('Logic');
 	//Moves player to the sprayed location.
 	var screen = scene.GetEntityByName(this.me.dynamiccomponent.GetAttribute('screenName'));
+	print(screen.Name());
 	var particlePos = this.me.dynamiccomponent.GetAttribute('particlePos');
 	var tm = this.me.placeable.transform;
 	var gao = screen.mesh.GetAdjustOrientation();
@@ -118,7 +120,7 @@ BotScript.prototype.Spraying = function(frametime){
 	}else{ //dlon > dlat
 		var ratioLat = Math.abs(dlat / dlon);
 		var ratioLon = 1
-	
+	}
 	//Speed * time * ratio of distance. To go straight to the goal, not zig zag.
 	var lats = speed * time * ratioLat;
 	var lons = speed * time * ratioLon;
@@ -144,7 +146,6 @@ BotScript.prototype.Spraying = function(frametime){
 	tm.pos.z = finalMovementz;
 	
 	var angleOfOrientation = Math.atan2(Math.abs(dlon), Math.abs(dlat));
-	//print (toMoves.x, toMoves.y);
 
 	if (dlat>=0 && dlon>=0){ 	
 		tm.rot.y = (Math.PI + angleOfOrientation) * (180/Math.PI);
@@ -162,17 +163,23 @@ BotScript.prototype.Spraying = function(frametime){
 		tm.rot.y = angleOfOrientation * (180/Math.PI);
 		tm.rot.y += 15;
 	}
-	
+	print (finalMovementz, finalMovementx, xNow, zNow);
+	print (this.totalLon, this.totalLat);
 	this.me.placeable.transform = tm;	
 	this.me.dynamiccomponent.SetAttribute('ifToWalk', true);
+	
 	if (this.totalLon > Math.abs(dlat) || this.totalLat > Math.abs(dlon)) {
-		this.totalTime = this.totalTime + frametime;
+		
+		this.me.dynamiccomponent.SetAttribute('rdyToSpray', true);
+		this.me.dynamiccomponent.SetAttribute('ifToWalk', false);
+		this.me.dynamiccomponent.SetAttribute('Spraying', false);
+		tm.pos.x = particlePos.x;
+		tm.pos.z = particlePos.z;
+		this.me.placeable.transform = tm;
 		this.totalLat = 0;
 		this.totalLon = 0;
 		print('Spraying has ended, well done Sir.');
 		this.totalTime = 0;
-		this.me.dynamiccomponent.SetAttribute('ifToWalk', false);
-		this.me.dynamiccomponent.SetAttribute('Spraying', false);
 	}	
 }
 /*	this.me.dynamiccomponent.SetAttribute('ifTowalk', false);
@@ -187,12 +194,13 @@ BotScript.prototype.Spraying = function(frametime){
 	this.me.placeable.transform = tm;*/
 	
 	
-}
+
 
 BotScript.prototype.Busted = function(frametime){
 	//If player is busted, actions are halted for 5 seconds. 
 	this.me.dynamiccomponent.SetAttribute('Spraying', false);
 	this.me.dynamiccomponent.SetAttribute('ifToWalk', false);
+	this.me.dynamiccomponent.SetAttribute('rdyToSpray', false);
 	this.totalTime += frametime;
 	print('Player /n ' + this.me.Name() + 'Busted for 5 seconds');
 	
@@ -208,10 +216,10 @@ BotScript.prototype.Update = function(frametime) {
 		//Add all updates here
 		if(this.me.dynamiccomponent.GetAttribute("ifToWalk") == true && this.me.dynamiccomponent.GetAttribute("Busted") == false && this.me.dynamiccomponent.GetAttribute('Spraying') == false)
 			this.MoveAvatar(frametime);
-		if(this.me.dynamiccomponent.GetAttribute('Spraying') == true && this.me.dynamiccomponent.GetAttribute('Busted') == false)
+		if(this.me.dynamiccomponent.GetAttribute('Spraying') == true && this.me.dynamiccomponent.GetAttribute('Busted') == false){
 			this.Spraying(frametime);
+		}
 		if(this.me.dynamiccomponent.GetAttribute('Busted') == true){
-			print('eehaw');
 			this.Busted(frametime);
 		}
 	}else
