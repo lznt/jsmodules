@@ -12,6 +12,12 @@ function PoliceScript (entity, comp){
 	*/
 	this.me = entity;
 	frame.Updated.connect(this, this.Update);
+	//Logic has attribute id to give all policemen their identical name. 
+	Logic = scene.GetEntityByName('Logic');
+	var id=Logic.dynamiccomponent.GetAttribute('id');
+	Logic.dynamiccomponent.SetAttribute('id', (id + 1));
+	this.me.SetName("Police" + String(Logic.dynamiccomponent.GetAttribute('id')));
+	var rnd = new Array(16);
 	var avatarurl = "default_avatar.avatar";
 	var r = this.me.avatar.appearanceRef;
     r.ref = avatarurl;
@@ -23,11 +29,8 @@ function PoliceScript (entity, comp){
 	this.totalLat;
 	this.totalLon;
 	this.setted = false;
-	var rnd = new Array(16);
 	this.curPos = random(rnd.length);
-	print (this.curPos);
-	co=this.me.GetOrCreateComponent('EC_Script', '1');
-	co.className = "BotAndPoliceApp.BotAndPolice";
+	this.me.dynamiccomponent.CreateAttribute('string', 'PlayerName');
 	//Initialize positions
 	/* Referencelist for numbers
 	1 = ASEMAKTORIK = array([65.014685,25.471802])
@@ -47,7 +50,8 @@ function PoliceScript (entity, comp){
 	15 = ISOKKAUPPURIK = array([65.011267,25.472134])
 	16 = UUSIKKAUPPURIK = array([65.010742,25.474119])
 	*/
-
+	
+	//Init places to go.
 	this.points = [];
 	
 	A = new Object();
@@ -148,7 +152,7 @@ function PoliceScript (entity, comp){
 
 }
 
-
+//Our own random function
 function random(n) {
 	seed = new Date().getTime();
 	seed = (seed*9301+49297) % 233280;
@@ -158,7 +162,7 @@ function random(n) {
 
 
 PoliceScript.prototype.Calculate = function(){
-
+	//Calculates the distance from GPS coords to realXtend coordinates, with haversine formula. Same principle as in websocketserver.py - move()
 	var lat1 = 65.012124;
 	var lon1 = 25.473395;
 	var lat = this.dest[0];
@@ -193,7 +197,7 @@ PoliceScript.prototype.Calculate = function(){
 	
 	this.totalLat = 0;
 	this.totalLon = 0;
-	
+	//If player is setted for the first time setted == false
 	if (this.setted == false){
 		var tm = this.me.placeable.transform;
 		tm.pos.x = longitudeInMeters;
@@ -211,7 +215,7 @@ PoliceScript.prototype.Calculate = function(){
 }
 
 PoliceScript.prototype.GetDestination = function() {
-
+	//Get next destination in relation to current position, from all possible goals. 
 	var index = random(this.points[this.curPos].next.length);
 	this.curPos = this.points[this.curPos].next[index];
 	this.dest = [this.points[this.curPos].lat, this.points[this.curPos].lon];
@@ -253,7 +257,7 @@ PoliceScript.prototype.CalcLat = function(lat1, lat2){
 
 PoliceScript.prototype.MovePolice = function(frametime){
 	
-	
+	//The function to actually move policeman in the scene. Same principle as in BotScript_application.js
 	var time = frametime;
 	var speed = 3.0;
 	var pos = this.me.placeable.Position();
@@ -316,15 +320,50 @@ PoliceScript.prototype.MovePolice = function(frametime){
 }
 
 PoliceScript.prototype.UpdateClient = function(frametime){
-
-		this.me.animationcontroller.SetAnimationSpeed('Walk', '1.6');
-		this.me.animationcontroller.EnableAnimation('Walk', true, 0.25, false);
+	//Animations for policeman.
+	this.me.animationcontroller.SetAnimationSpeed('Walk', '1.6');
+	this.me.animationcontroller.EnableAnimation('Walk', true, 0.25, false);
 
 }
 
-
+PoliceScript.prototype.BustAPlayer = function(frametime){
+	var Players = scene.GetEntitiesWithComponent('EC_Script', 'Player');
+	Logic = scene.GetEntityByName('Logic');
+	
+	//Checks all players and if someone is spraying and in 25m of policeofficer, busted is saved for that player. Also into logic,
+	//Because logic sends that value to ws.py which then gives the sendAll function to send our server the info of that bust.
+	if (Players[0] == null){
+		print('No players in the scene');
+	}else{
+		for (i in Players){
+			xNow = this.me.placeable.Position().x;
+			zNow = this.me.placeable.Position().z;
+			var player = Players[i].Name();
+			var dist = Math.sqrt(Math.pow((xNow - Players[i].placeable.Position().x), 2) + 
+				Math.pow((zNow - Players[i].placeable.Position().z), 2));
+			Player = Players[i];
+			if(dist <= 25 && Players[i].dynamiccomponent.GetAttribute('Spraying')==true){
+				print (dist);
+				print('Do we enter here?');
+				Logic.dynamiccomponent.SetAttribute('Busted', true); 
+				Players[i].dynamiccomponent.SetAttribute('Busted', true);
+				Logic.dynamiccomponent.SetAttribute('PlayerName', player);
+				Players[i].dynamiccomponent.SetAttribute('Spraying', false);
+				Logic.dynamiccomponent.SetAttribute('BustingOfficer', this.me.Name());
+			
+			}else{
+				Logic.dynamiccomponent.SetAttribute('Busted', false);
+				//Players[i].dynamiccomponent.SetAttribute('Busted', false);
+			}
+		}
+	}
+	
+	
+}
 
 PoliceScript.prototype.Update = function(frametime) {
+	
+	
 	if (server.IsRunning()){
 		if(this.calc == true)
 			this.GetDestination();
@@ -334,6 +373,9 @@ PoliceScript.prototype.Update = function(frametime) {
 		else	
 			if(this.move == true)
 				this.MovePolice(frametime);
+				
+		this.BustAPlayer(frametime);
+		
 	}else
 		this.UpdateClient(frametime);
 		

@@ -34,7 +34,10 @@ BotAndPolice.prototype.IfCloseTo = function(frametime){
 			
 			//print (dist);
 			//Here we can separate PoliceMan from Another player
-			if(dist <= 25 && this.me.Id() != scriptObjects[i].me.Id() && this.me.dynamiccomponent.GetAttribute('Role') == 'Player' && this.me.dynamiccomponent.GetAttribute('Spraying') == true){
+			if(dist <= 25 && this.me.Id() != scriptObjects[i].me.Id() && this.me.dynamiccomponent.GetAttribute('Role') == 'Player' 
+					&& this.me.dynamiccomponent.GetAttribute('Team') != scriptObjects[i].me.dynamiccomponent.GetAttribute('Team') && 
+					this.me.dynamiccomponent.GetAttribute('Spraying') == true){
+				
 				this.busted = true;
 				print('Busted in da hood');
 				this.me.dynamiccomponent.SetAttribute('busted', true);
