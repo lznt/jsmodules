@@ -24,26 +24,31 @@ ParticleScript.prototype.EnableSpray = function(frametime) {
 				var dist = Math.sqrt(Math.pow((this.me.placeable.Position().x - Player.placeable.Position().x), 2) + 
 					Math.pow((this.me.placeable.Position().z - Player.placeable.Position().z), 2));
 			
-			if(dist < 5){
+			if(dist <= 5){
 				//Start spraying and plus totalTime.
 				Player.dynamiccomponent.SetAttribute('rdyToSpray', true);
 				this.me.particlesystem.enabled = true;
 				this.totalTime = this.totalTime + frametime;
 				//End spraying if has been spraying for 5 seconds.
 			}
+			if(this.totalTime > 5){
+				print(this.totalTime);
+				this.me.particlesystem.enabled = false;
+				this.totalTime = 0;
+				//Player.dynamiccomponent.SetAttribute('rdyToSpray', false);
+				this.me.dynamiccomponent.SetAttribute('Spraying', false);
+			}
+			
 		}
 			
-		if (this.totalTime >= 5){
-			this.me.particlesystem.enabled = false;
-			this.totalTime = 0;
-			this.me.dynamiccomponent.SetAttribute('Spraying', false);
+		
 			
-		}
-			//print('Waiting');
 	}
+		//this.me.particlesystem.enabled = false;	//print('Waiting');
+}
 	
 
-}
+
 
 
 ParticleScript.prototype.Update = function(frametime) {

@@ -1,13 +1,20 @@
 function MaterialScript(entity, comp) {
+	/*
+	This script makes sure that the screen that is sprayed will get the right sprayimage. To make sure we take the players name who pressed spray and save it to
+	the screen's dynamiccomponent that player choosed to spray. BUG: Sometimes for somereason does not spray the image, spray effect works. (ParticleScript.js)
+	*/
+
 	this.me = entity;
 	frame.Updated.connect(this, this.Update);
 	this.me.dynamiccomponent.SetAttribute('Spraying', false);
 	this.totalTime = 0;
 	this.me.dynamiccomponent.CreateAttribute('string' , 'screenName');
 	this.me.dynamiccomponent.CreateAttribute('string', 'PlayerName');
-	//co = this.me.GetOrCreateComponent("EC_Script" , "1");
-	//co.className = "MaterialScriptApp.MaterialScript";
 	
+	this.Teams = new Object;
+	this.Teams.taistelutoverit = 'blue.material';
+	this.Teams.kannuttajat = 'yellow1.material';
+	this.Teams.kadunvaltaajat = 'red.material';
 }
 
 MaterialScript.prototype.Spray = function(frametime){
@@ -38,32 +45,37 @@ MaterialScript.prototype.Spray = function(frametime){
 		//Launch this if only if 5seconds have passed, after spray() was called from phone.
 		if(this.totalTime>=5){
 			if(playerTeam == 'Taistelutoverit'){
-				this.me.material.inputMat = 'local://blue.material';
+				this.me.material.inputMat = this.Teams.taistelutoverit;
 				this.me.placeable.visible=true;
 				this.me.dynamiccomponent.SetAttribute('Spraying', false);
-			
+				this.me.material.inputMat = this.Teams.taistelutoverit;
 			}else if(playerTeam == 'Kadunvaltaajat'){
-				this.me.material.inputMat = 'local://red.material';
+				this.me.material.inputMat = this.Teams.kadunvaltaajat;
 				this.me.placeable.visible = true;
 				this.me.dynamiccomponent.SetAttribute('Spraying', false);
-				
-			}else if(playerTeam == 'Yellowpants'){
-				this.me.material.inputMat = 'local://yellow1.material';
+				this.me.material.inputMat = this.Teams.kadunvaltaajat;
+			}else if(playerTeam == 'Kannuttajat'){
+				this.me.material.inputMat = this.Teams.kannuttajat;
 				this.me.placeable.visible = true;
 				this.me.dynamiccomponent.SetAttribute('Spraying', false);
+				this.me.material.inputMat = this.Teams.kannuttajat;
 			}
-			this.totalTime = 0;
-			this.Player.dynamiccomponent.SetAttribute('rdyToSpray', false);
+		this.totalTime = 0;
+		var PlayerEn = scene.GetEntityByName(this.me.dynamiccomponent.GetAttribute('PlayerName'));
+		PlayerEn.dynamiccomponent.SetAttribute('rdyToSpray', false);
+		
 		}
+		
+		
 	}
 	
 }
 
 MaterialScript.prototype.Update = function(frametime) {
-	this.Player = scene.GetEntityByName(this.me.dynamiccomponent.GetAttribute('PlayerName'));
+	this.PlayerEn = scene.GetEntityByName(this.me.dynamiccomponent.GetAttribute('PlayerName'));
 	if (server.IsRunning()){
-		if(this.Player != null){
-			if(this.Player.dynamiccomponent.GetAttribute('rdyToSpray') == true && this.me.dynamiccomponent.GetAttribute('screenName') == this.me.Name()){	
+		if(this.PlayerEn){
+			if(this.PlayerEn.dynamiccomponent.GetAttribute('rdyToSpray') == true && this.me.dynamiccomponent.GetAttribute('screenName') == this.me.Name()){	
 				this.Spray(frametime);
 			}
 		}

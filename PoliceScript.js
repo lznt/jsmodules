@@ -152,7 +152,7 @@ function PoliceScript (entity, comp){
 
 }
 
-//Our own random function
+//Our own random function to make a random
 function random(n) {
 	seed = new Date().getTime();
 	seed = (seed*9301+49297) % 233280;
@@ -160,9 +160,20 @@ function random(n) {
 	return (Math.floor((seed/(233280.0)* n)));
 }
 
-
+/*
+Calculates the distance from GPS coords to realXtend coordinates, with haversine formula. Same principle as in websocketserver.py - move()
+*/
 PoliceScript.prototype.Calculate = function(){
-	//Calculates the distance from GPS coords to realXtend coordinates, with haversine formula. Same principle as in websocketserver.py - move()
+	/* 
+	VARIABLES:
+	lat1, lon1 = 0,y,0 of our 3d map in real coordinates
+	lat, lon = new coordinates that the police gets from pre-destined objects.
+	pos = own position(current)
+	latitudeInMeters = distance to be walked calculated with haversine(z axis)
+	longitudeInMeters = distance to be walked calculated with haversine(x axis)
+	dlon, dlat = to check on what quad the new destination is in.
+	relativeLat, relativeLon = the distance to be walked
+	*/
 	var lat1 = 65.012124;
 	var lon1 = 25.473395;
 	var lat = this.dest[0];
@@ -197,7 +208,8 @@ PoliceScript.prototype.Calculate = function(){
 	
 	this.totalLat = 0;
 	this.totalLon = 0;
-	//If player is setted for the first time setted == false
+	//If policebot is setted for the first time setted == false
+	//This way the bot will be placed on a position and will not walk until it takes a new position.
 	if (this.setted == false){
 		var tm = this.me.placeable.transform;
 		tm.pos.x = longitudeInMeters;
@@ -226,7 +238,6 @@ PoliceScript.prototype.GetDestination = function() {
 
 PoliceScript.prototype.CalcLong = function(lon1, lon2, lat1, lat2){
 	var radius = 6371; // km
-	
 	var dlat = 0;
 	var dlon = (lon2-lon1) * (Math.PI/180);
 	var a = Math.sin(dlat/2) * Math.sin(dlat/2) + Math.cos(lat1*(Math.PI/180)) 
