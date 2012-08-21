@@ -2,15 +2,24 @@ function ParticleScript(entity, comp) {
 	this.me = entity;
 	frame.Updated.connect(this, this.Update);
 	this.me.dynamiccomponent.SetAttribute('Spraying', false);
-	//Create attribute for all Particles, set in WS.py Spray()
+	//Create attributes for all Particles, set in WS.py Spray()
 	this.me.dynamiccomponent.CreateAttribute('string' , 'particleName');
 	this.me.dynamiccomponent.CreateAttribute('string', 'PlayerName');
 	this.totalTime = 0;
-	//co=this.me.GetOrCreateComponent("EC_Script", "1");
-	//co.className = "ParticleScriptApp.ParticleScript";
 }
 
+/*
+Script for enabling spraying material, so that if player is not busted and is spraying(spray() called) the script will wait for the player 
+to be in front of the spray and enable the spray. After 5secs of spraying, it ends and sets values to default ones.  
+*/
 ParticleScript.prototype.EnableSpray = function(frametime) {
+	/*
+	Logic = Logic entity
+	Players = Players with a script named Player
+	Player = The player spraying, saved in ws.py
+	this.totalTime = the totalTime variable to be able to wait 5 seconds.
+	dist = distance between the spray and the player.
+	*/
 	var Logic = scene.GetEntityByName('Logic');
 	var Players = scene.GetEntitiesWithComponent('EC_Script', 'Player');
 	var Player = scene.GetEntityByName(this.me.dynamiccomponent.GetAttribute('PlayerName'));
@@ -35,7 +44,6 @@ ParticleScript.prototype.EnableSpray = function(frametime) {
 				print(this.totalTime);
 				this.me.particlesystem.enabled = false;
 				this.totalTime = 0;
-				//Player.dynamiccomponent.SetAttribute('rdyToSpray', false);
 				this.me.dynamiccomponent.SetAttribute('Spraying', false);
 			}
 			
@@ -44,7 +52,7 @@ ParticleScript.prototype.EnableSpray = function(frametime) {
 		
 			
 	}
-		//this.me.particlesystem.enabled = false;	//print('Waiting');
+
 }
 	
 

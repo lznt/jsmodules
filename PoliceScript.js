@@ -10,6 +10,8 @@ function PoliceScript (entity, comp){
 	rnd: The array of 16 spots(0-15). For the random function to determine starting point.
 	this.curPos: Current position of avatar, see constructor end to check what different numbers present.
 	*/
+
+	this.animating = false;
 	this.me = entity;
 	frame.Updated.connect(this, this.Update);
 	//Logic has attribute id to give all policemen their identical name. 
@@ -18,10 +20,12 @@ function PoliceScript (entity, comp){
 	Logic.dynamiccomponent.SetAttribute('id', (id + 1));
 	this.me.SetName("Police" + String(Logic.dynamiccomponent.GetAttribute('id')));
 	var rnd = new Array(16);
-	var avatarurl = "default_avatar.avatar";
+	var avatarurl = "avatar_police.avatar";
 	var r = this.me.avatar.appearanceRef;
     r.ref = avatarurl;
     this.me.avatar.appearanceRef = r;
+	
+	this.attacments = false;
 	this.move = false;
 	this.calc = true;
 	this.calculate = false;
@@ -270,7 +274,7 @@ PoliceScript.prototype.MovePolice = function(frametime){
 	
 	//The function to actually move policeman in the scene. Same principle as in BotScript_application.js
 	var time = frametime;
-	var speed = 3.0;
+	var speed = 2.0;
 	var pos = this.me.placeable.Position();
 	var tm = this.me.placeable.transform;
 	var yNow = pos.y;
@@ -329,12 +333,65 @@ PoliceScript.prototype.MovePolice = function(frametime){
 
 	}
 }
+/*
+The function that adds attachments for police officers, Script is basically empty, needed only to later on get the attachment entity.
+*/
+PoliceScript.prototype.AddAttachments = function(){
+	var Policemen = scene.GetEntitiesWithComponent("EC_Script", "Police");
+	var n = 0;
+	this.policeattachments = [];
+	for (i in Policemen){
+		if(Policemen[i].dynamiccomponent.GetAttribute('attachments') == false){
+			var attachment = scene.CreateEntity(scene.NextFreeId(),["EC_Placeable", "EC_Mesh", "EC_Name", "EC_AnimationController", "EC_DynamicComponent"]);
+			attachment.name = 'Pants' + Policemen[i].name;
+			attachment.GetOrCreateComponent("EC_Script", 'Attachments');
+			attachment.dynamiccomponent.CreateAttribute('bool', 'Animating');
+			attachment.dynamiccomponent.SetAttribute('Animating', false);
+			attachment.script.className = "BotScriptApp.Attachments";
+			attachment.mesh.meshRef = new AssetReference('local://attachments/male_trousers_texture_lightbrown.mesh');
+			var tm = attachment.placeable.transform;
+			attachment.placeable.SetScale(1.02, 1.02, 1.02);
+			attachment.SetTemporary(true);
+			var meshlist = attachment.mesh.meshMaterial;
+			meshlist = ['male_trousers_texture_lightbrown.material'];
+			attachment.mesh.meshMaterial = meshlist;
+			
+			
+			var parentRef = attachment.placeable.parentRef;
+			parentRef.ref = Policemen[i];
+			attachment.placeable.parentRef = parentRef;
+			attachment.placeable.parentBone = "Bip01_Spine02";
+			tm.pos.y = -0.88;
+			attachment.placeable.transform = tm;
+			Policemen[i].dynamiccomponent.SetAttribute('attachments', true);
+
+		}
+
+	}
+
+}
 
 PoliceScript.prototype.UpdateClient = function(frametime){
 	//Animations for policeman.
-	this.me.animationcontroller.SetAnimationSpeed('Walk', '1.6');
-	this.me.animationcontroller.EnableAnimation('Walk', true, 0.25, false);
 
+	var attachments = scene.GetEntitiesWithComponent("EC_Script", "Attachments");
+
+	this.me.mesh.SetMorphWeight("Morph_muscular-arms-lower", 0.4);
+	this.me.mesh.SetMorphWeight("Morph_muscular-arms-upper", 0.5);
+	this.me.mesh.SetMorphWeight("Morph_muscular-body-upper", 0.6);
+	this.me.mesh.SetMorphWeight("Morph_muscular-legs-upper", 0.6);
+	this.me.mesh.SetMorphWeight("Morph_muscular-legs-lower", 0.6);
+	this.me.animationcontroller.SetAnimationSpeed('Walk', 0.6);
+	this.me.animationcontroller.PlayAnim('Walk', 0.25, 'Walk');
+	//TOFIX: ANIMATIONS DON'T SYNC. APPEARING TO BE A BUG IN REX(???)
+	for(i in attachments){
+		//if(attachments[i].name == 'Pants'+this.me.Name()){
+			//attachments[i].animationcontroller.SetAnimationSpeed('Walk', 0.6);
+
+			//attachments[i].animationcontroller.PlayAnim('Walk', 0.25, 'Walk');
+			
+		//}
+	}
 }
 
 PoliceScript.prototype.BustAPlayer = function(frametime){
@@ -344,7 +401,7 @@ PoliceScript.prototype.BustAPlayer = function(frametime){
 	//Checks all players and if someone is spraying and in 25m of policeofficer, busted is saved for that player. Also into logic,
 	//Because logic sends that value to ws.py which then gives the sendAll function to send our server the info of that bust.
 	if (Players[0] == null){
-		print('No players in the scene');
+		//print('No players in the scene');
 	}else{
 		for (i in Players){
 			xNow = this.me.placeable.Position().x;
@@ -373,9 +430,12 @@ PoliceScript.prototype.BustAPlayer = function(frametime){
 }
 
 PoliceScript.prototype.Update = function(frametime) {
-	
-	
+
 	if (server.IsRunning()){
+		
+		//this.AddAttachments();
+		
+		
 		if(this.calc == true)
 			this.GetDestination();
 		else		
@@ -389,5 +449,6 @@ PoliceScript.prototype.Update = function(frametime) {
 		
 	}else
 		this.UpdateClient(frametime);
+		
 		
 }

@@ -25,6 +25,138 @@ function BotScript(entity, comp) {
 	this.players = 0;
 	
 }
+
+BotScript.prototype.AddAttachments = function(){
+	
+	var Players = scene.GetEntitiesWithComponent("EC_Script", "Player");
+	for (i in Players){
+		if(Players[i].dynamiccomponent.GetAttribute('Team') == 'Taistelutoverit' && Players[i].dynamiccomponent.GetAttribute('attachments') == false){
+			/*
+			In this function we add the player some attachments, a hoodie and pants. Also we add some things to recognize them from each others.
+			*/
+			
+			var tm = Players[i].placeable.transform;
+			var attachment = scene.CreateEntity(scene.NextFreeId(),["EC_Placeable", "EC_Mesh", "EC_Name", "EC_AnimationController"]);
+			attachment.GetOrCreateComponent("EC_Script", 'Attachmentsplayer');
+			attachment.name = Players[i].name+ 'hoodie';
+			attachment.mesh.meshRef = new AssetReference('local://attachments/taistelutoverit_shirt.mesh');
+			var meshlist = attachment.mesh.meshMaterial;
+			meshlist = ['taistelutoverit_shirt.material'];
+			attachment.mesh.meshMaterial = meshlist;
+			attachment.SetTemporary(true);
+			
+			var parentRef = attachment.placeable.parentRef;
+			parentRef.ref = Players[i];
+			attachment.placeable.parentRef = parentRef;
+			tm.pos.y = -0.85;
+			attachment.placeable.transform = tm;
+			Players[i].dynamiccomponent.SetAttribute('attachments', true);
+			
+			//Above this we add a hoodie, below ar the pants.
+			var attachment = scene.CreateEntity(scene.NextFreeId(),["EC_Placeable", "EC_Mesh", "EC_Name", "EC_AnimationController", "EC_DynamicComponent"]);
+			attachment.name = Players[i].Name() + 'pants';
+			attachment.GetOrCreateComponent("EC_Script", 'Attachmentsplayer');
+			attachment.script.className = "BotScriptApp.Attachments";
+			attachment.mesh.meshRef = new AssetReference('local://attachments/male_trousers_texture_lightbrown.mesh');
+			var tm = attachment.placeable.transform;
+			attachment.placeable.SetScale(1.02,1.02,1.02);
+			attachment.SetTemporary(true);
+			var meshlist = attachment.mesh.meshMaterial;
+			meshlist = ['male_trousers_texture_lightbrown.material'];
+			attachment.mesh.meshMaterial = meshlist;
+			
+			
+			var parentRef = attachment.placeable.parentRef;
+			parentRef.ref = Players[i];
+			attachment.placeable.parentRef = parentRef;
+			attachment.placeable.parentBone = "Bip01_Spine02";
+			tm.pos.y = -0.88;
+			attachment.placeable.transform = tm;
+			Players[i].dynamiccomponent.SetAttribute('attachments', true);
+			
+		}else if(Players[i].dynamiccomponent.GetAttribute('Team') == 'Kadunvaltaajat' && Players[i].dynamiccomponent.GetAttribute('attachments') == false){
+			var tm = Players[i].placeable.transform;
+			var attachment = scene.CreateEntity(scene.NextFreeId(),["EC_Placeable", "EC_Mesh", "EC_Name", "EC_AnimationController"]);
+			attachment.GetOrCreateComponent("EC_Script", 'Attachmentsplayer');
+			attachment.name = Players[i].name+ 'hoodie';
+			attachment.mesh.meshRef = new AssetReference('local://attachments/kadunvaltaajat_shirt.mesh');
+			var meshlist = attachment.mesh.meshMaterial;
+			meshlist = ['kadunvaltaajat_shirt.material'];
+			attachment.mesh.meshMaterial = meshlist;
+			attachment.SetTemporary(true);
+			
+			var parentRef = attachment.placeable.parentRef;
+			parentRef.ref = Players[i];
+			attachment.placeable.parentRef = parentRef;
+			tm.pos.y = -0.85;
+			attachment.placeable.transform = tm;
+			
+			
+			var attachment = scene.CreateEntity(scene.NextFreeId(),["EC_Placeable", "EC_Mesh", "EC_Name", "EC_AnimationController", "EC_DynamicComponent"]);
+			attachment.name = Players[i].Name() + 'pants';
+			attachment.GetOrCreateComponent("EC_Script", 'Attachmentsplayer');
+			attachment.script.className = "BotScriptApp.Attachments";
+			attachment.mesh.meshRef = new AssetReference('local://attachments/male_trousers_texture_lightbrown.mesh');
+			var tm = attachment.placeable.transform;
+			attachment.placeable.SetScale(1.02,1.02,1.02);
+			attachment.SetTemporary(true);
+			var meshlist = attachment.mesh.meshMaterial;
+			meshlist = ['male_trousers_texture_lightbrown.material'];
+			attachment.mesh.meshMaterial = meshlist;
+			
+			var parentRef = attachment.placeable.parentRef;
+			parentRef.ref = Players[i];
+			attachment.placeable.parentRef = parentRef;
+			attachment.placeable.parentBone = "Bip01_Spine02";
+			tm.pos.y = -0.88;
+			attachment.placeable.transform = tm;
+			Players[i].dynamiccomponent.SetAttribute('attachments', true);
+			
+		}else if(Players[i].dynamiccomponent.GetAttribute('Team') == 'Kannuttajat' && Players[i].dynamiccomponent.GetAttribute('attachments') == false){
+			var tm = Players[i].placeable.transform;
+			var attachment = scene.CreateEntity(scene.NextFreeId(),["EC_Placeable", "EC_Mesh", "EC_Name", "EC_AnimationController"]);
+			attachment.GetOrCreateComponent("EC_Script", 'Attachmentsplayer');
+			attachment.name = Players[i].name + 'hoodie';
+			print('printsomething');
+			attachment.mesh.meshRef = new AssetReference('local://attachments/kannuttajat_shirt.mesh');
+			var meshlist = attachment.mesh.meshMaterial;
+			meshlist = ['kannuttajat_shirt.material'];
+			attachment.mesh.meshMaterial = meshlist;
+			attachment.SetTemporary(true);
+			
+			var parentRef = attachment.placeable.parentRef;
+			parentRef.ref = Players[i];
+			attachment.placeable.parentRef = parentRef;
+			pos = attachment.placeable.Position();
+			tm.pos.y = -0.85;
+			attachment.placeable.transform = tm;
+			Players[i].dynamiccomponent.SetAttribute('attachments', true);
+			
+			var attachment = scene.CreateEntity(scene.NextFreeId(),["EC_Placeable", "EC_Mesh", "EC_Name", "EC_AnimationController", "EC_DynamicComponent"]);
+			attachment.name = Players[i].Name() + 'pants';
+			attachment.GetOrCreateComponent("EC_Script", 'Attachmentsplayer');
+			attachment.script.className = "BotScriptApp.Attachments";
+			attachment.mesh.meshRef = new AssetReference('local://attachments/male_trousers_texture_lightbrown.mesh');
+			var tm = attachment.placeable.transform;
+			attachment.placeable.SetScale(1.02,1.02,1.02);
+			attachment.SetTemporary(true);
+			var meshlist = attachment.mesh.meshMaterial;
+			meshlist = ['male_trousers_texture_lightbrown.material'];
+			attachment.mesh.meshMaterial = meshlist;
+			
+			var parentRef = attachment.placeable.parentRef;
+			parentRef.ref = Players[i];
+			attachment.placeable.parentRef = parentRef;
+			attachment.placeable.parentBone = "Bip01_Spine02";
+			tm.pos.y = -0.88;
+			attachment.placeable.transform = tm;
+			Players[i].dynamiccomponent.SetAttribute('attachments', true);
+		}
+	}
+
+}
+
+
 /*
 Adds Hoveringtext component to players, distinguishing them from each others.
 */
@@ -50,7 +182,7 @@ BotScript.prototype.AddHoveringText = function(){
 				var font_color = new Color(0, 0.17, 0.91, 1.0);                
 				nameTag.fontColor = font_color;
 				this.players = Players.length;
-				frame.Updated.connect(this, this.Update);
+				frame.Updated.connect(this, this.Update);				
 				
 			}else if (Players[i].dynamiccomponent.GetAttribute('Team') == 'Kadunvaltaajat' && !Players[i].hoveringtext){
 				var nameTag = Players[i].CreateComponent("EC_HoveringText", 2, true);
@@ -171,14 +303,43 @@ BotScript.prototype.MoveAvatar = function(frametime) {
 }
 /*
 This function updates the client side, enables the animations at the moment for players.
+TODO: ANIMATION SYNCHRONIZATION IS MESSED ATM.
 */
 BotScript.prototype.UpdateClient = function(frametime){
-	if (this.me.dynamiccomponent.GetAttribute("ifToWalk") == true && this.me.dynamiccomponent.GetAttribute("Busted") == false){
-		this.me.animationcontroller.SetAnimationSpeed('Walk', '0.60');
-		this.me.animationcontroller.EnableAnimation('Walk', true, 0.25, false);
+	print('asdsadsda');
+	var attachments = scene.GetEntitiesWithComponent("EC_Script", "Attachmentsplayer");
+	if (!attachments == null)
+		print('No attachments, sir');
+	
+	print(attachments);
+
+	this.me.mesh.SetMorphWeight("Morph_thin-arms-lower", 0.4);
+	this.me.mesh.SetMorphWeight("Morph_thin-arms-upper", 0.4);
+	this.me.mesh.SetMorphWeight("Morph_thin-legs-upper", 0.6);
+	this.me.mesh.SetMorphWeight("Morph_thin-legs-lower", 0.6);
+	for(i in attachments){
+		if (this.me.dynamiccomponent.GetAttribute("ifToWalk") == true && this.me.dynamiccomponent.GetAttribute("Busted") == false){
+		
+			if(attachments[i].Name() == this.me.Name()+'hoodie'){
+				attachments[i].animationcontroller.SetAnimationSpeed('Walk', 0.6);
+				this.me.animationcontroller.SetAnimationSpeed('Walk', 0.6);
+				this.me.animationcontroller.PlayAnim('Walk', 0.25, 'Walk');
+				attachments[i].animationcontroller.PlayAnim('Walk', 0.25, 'Walk');	
+			}
+			if(attachments[i].name == this.me.Name()+'pants'){
+				this.me.animationcontroller.SetAnimationSpeed('Walk', 0.6);
+				attachments[i].animationcontroller.SetAnimationSpeed('Walk', 0.6);
+				this.me.animationcontroller.PlayAnim('Walk', 0.25, 'Walk');
+				attachments[i].animationcontroller.PlayAnim('Walk', 0.25, 'Walk');
+			}
+			
+		}else {
+			this.me.animationcontroller.StopAnim('Walk', 0.25);
+			attachments[i].animationcontroller.StopAnim('Walk', 0);
+			//this.me.animationcontroller.DisableAllAnimations();
+		}
 	}
-	else 
-		this.me.animationcontroller.DisableAllAnimations();
+	
 }
 /*
 This function is launched when player sends Spray() msg in websocketserver.py. If player is within 50m he walks to the destination and the spraying
@@ -196,10 +357,9 @@ BotScript.prototype.Spraying = function(frametime){
 	var dlon = (particlePos.x - xNow) * 1000;
 	var dlat = (particlePos.z - zNow) * 1000;
 	var time = frametime;
-	var speed = 3;
+	var speed = 2;
 	var dist = Math.sqrt(Math.pow((xNow - particlePos.x), 2) + 
 					Math.pow((zNow - particlePos.z), 2));
-	print(dist);
 	if(dist > 50){
 		tm.pos.x = particlePos.x;
 		tm.pos.z = particlePos.z;
@@ -295,7 +455,7 @@ BotScript.prototype.BustEm = function(frametime){
 			var dist = Math.sqrt(Math.pow((xNow - Players[i].placeable.Position().x), 2) + 
 				Math.pow((zNow - Players[i].placeable.Position().z), 2));
 			Player = Players[i];
-			if(dist <= 25 && Players[i].dynamiccomponent.GetAttribute('Spraying')==true){
+			if(dist <= 25 && Players[i].dynamiccomponent.GetAttribute('Spraying')==true && Players[i].Name() != this.me.Name()){
 				print (dist);
 				print('Do we enter here?');
 				Logic.dynamiccomponent.SetAttribute('Busted', true); 
@@ -329,8 +489,21 @@ BotScript.prototype.Busted = function(frametime){
 	}
 }
 
+// THIS IS THE WAY TO GET RID OF CRASHING AFTER ENTITY DELETION! Ran when phone sends a msg that user has disconnected
+BotScript.prototype.OnScriptObjectDestroyed = function(){
+    // Must remember to manually disconnect subsystem signals, otherwise they'll continue to get signalled
+    if (this.isServer)
+    {
+        frame.Updated.disconnect(this, this.Update);
+    }
+    else
+        frame.Updated.disconnect(this, this.Update);
+
+}
+
 BotScript.prototype.Update = function(frametime) {
 	if (server.IsRunning()){
+		this.AddAttachments();
 		this.BustEm(frametime);
 		this.AddHoveringText();
 		
@@ -342,6 +515,7 @@ BotScript.prototype.Update = function(frametime) {
 		if(this.me.dynamiccomponent.GetAttribute('Busted') == true){
 			this.Busted(frametime);
 		}
+		
 	}else
 		this.UpdateClient(frametime);
 		

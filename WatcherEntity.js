@@ -1,6 +1,14 @@
 function WatcherEntity(entity, comp){
-	//This is the script for realxtend to recognize players and create them to scene.
-	//Have to figure out a way to authenticate users.
+	//This is the script for realxtend to recognize watcherplayers and create them to scene.
+	//Users are hardcoded atm, in future they will be this way in the database.
+	/*
+	VARIABLES:
+	players = an array that holds the player objects.
+	player1, player2, player3 = three different player objects that have a name, a team and a variable set to check whether they have been already 
+		added to the scene
+	this.teams = an array that holds the names of 3 teams in the game.
+	*/
+	print('WatcherEntity');
 	this.players = [];
 	frame.Updated.connect(this, this.Update);
 	this.me = entity;
@@ -29,10 +37,15 @@ function WatcherEntity(entity, comp){
 	
 	
 }
-
+/*
+Function for handling connected users via realXtend viewer. They get their name and we check for their team. 
+*/
 WatcherEntity.prototype.ServerHandleUserConnected = function(connectionID, user) {
+	/*
+	VARIABLES:
+	users = all authenticated users on server
+	*/
 	var users = server.AuthenticatedUsers();
-    // Uncomment to test access control
 	for(i in this.players){
 		if (this.players[i].set == false && user.GetProperty("username") == this.players[i].name){
 			this.avent = scene.CreateEntity(scene.NextFreeId(),["EC_Avatar", "EC_DynamicComponent", "EC_Script"]);
@@ -42,14 +55,14 @@ WatcherEntity.prototype.ServerHandleUserConnected = function(connectionID, user)
 			this.avent.dynamiccomponent.SetAttribute('Team', this.players[i].team);	
 			this.players[i].set = true;
 			this.CheckUsers(user);
-			//this.avent.script.className = 'WatcherApp.WatcherScript';
 			print('Handled user' + this.avent.name); 	
-		}
-		//this.AddLocalComponents();	
+		}	
 		
 	}
 }
-
+/*
+Handles disconnected users and removes them from scene.
+*/
 function ServerHandleUserDisconnected(connectionID, user) {
 	
 	var avatarEntityName = "Watcher" + user.GetProperty('username');
@@ -65,7 +78,9 @@ function ServerHandleUserDisconnected(connectionID, user) {
 	
 }
 
-
+/*
+Checks if a connecting player has left and changes the set to false, so that if he connects again he will be added again.
+*/
 WatcherEntity.prototype.CheckUsers = function(user){
 	
 	for(var i = 0;i<this.players.length;i++){
@@ -79,16 +94,11 @@ WatcherEntity.prototype.CheckUsers = function(user){
 
 WatcherEntity.prototype.Update = function(frametime) {
 	
-	if (server.IsRunning()){
-		
+	if (server.IsRunning()){	
 		var users = server.AuthenticatedUsers();
+		print(users);
 		for(var i=0; i < users.length; i++){
-			
 			this.ServerHandleUserConnected(users[i].id, users[i]);
-			
 		}
-	}		
-
-		
-		
+	}			
 }

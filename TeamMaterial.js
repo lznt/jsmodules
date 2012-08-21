@@ -2,6 +2,7 @@ function MaterialScript(entity, comp) {
 	/*
 	This script makes sure that the screen that is sprayed will get the right sprayimage. To make sure we take the players name who pressed spray and save it to
 	the screen's dynamiccomponent that player choosed to spray. BUG: Sometimes for somereason does not spray the image, spray effect works. (ParticleScript.js)
+	Quickfix for bug: add the new spray image twice, cos sometimes the first one fails.
 	*/
 
 	this.me = entity;
@@ -10,7 +11,7 @@ function MaterialScript(entity, comp) {
 	this.totalTime = 0;
 	this.me.dynamiccomponent.CreateAttribute('string' , 'screenName');
 	this.me.dynamiccomponent.CreateAttribute('string', 'PlayerName');
-	
+	//An object that holds in the teams sprayimage materials
 	this.Teams = new Object;
 	this.Teams.taistelutoverit = 'blue.material';
 	this.Teams.kannuttajat = 'yellow1.material';
@@ -20,12 +21,12 @@ function MaterialScript(entity, comp) {
 MaterialScript.prototype.Spray = function(frametime){
 	var Logic = scene.GetEntityByName('Logic');
 	this.Player = scene.GetEntityByName(this.me.dynamiccomponent.GetAttribute('PlayerName'));
+	
 	if(Logic.dynamiccomponent.GetAttribute('Busted') == true && Player != null){
 		this.me.dynamiccomponent.SetAttribute('Spraying', false);
 		this.totalTime = 0;
 	
 	}else{
-		//Get attributes from dynamiccomponent and for calculating distance between entities, we get current position of this.me
 		var playerId = this.me.dynamiccomponent.GetAttribute('PlayerId');
 		var playerTeam = this.me.dynamiccomponent.GetAttribute('PlayerTeam');
 		var playerPos = this.me.dynamiccomponent.GetAttribute('playerPos', playerPos);
@@ -34,12 +35,10 @@ MaterialScript.prototype.Spray = function(frametime){
 		var yNow = pos.y;
 		var xNow = pos.x;
 		var zNow = pos.z;
-		
-		
 		this.totalTime = this.totalTime + frametime;
 		
 		
-		//Calculate distance
+		//Calculate distance, not used atm.
 		var dist = Math.sqrt(Math.pow((xNow - playerPos.x), 2) + 
 					Math.pow((zNow - playerPos.z), 2));
 		//Launch this if only if 5seconds have passed, after spray() was called from phone.
