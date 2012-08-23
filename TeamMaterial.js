@@ -11,13 +11,17 @@ function MaterialScript(entity, comp) {
 	this.totalTime = 0;
 	this.me.dynamiccomponent.CreateAttribute('string' , 'screenName');
 	this.me.dynamiccomponent.CreateAttribute('string', 'PlayerName');
+	
 	//An object that holds in the teams sprayimage materials
+	//.material files are located in the scenes folder.
 	this.Teams = new Object;
 	this.Teams.taistelutoverit = 'blue.material';
 	this.Teams.kannuttajat = 'yellow1.material';
 	this.Teams.kadunvaltaajat = 'red.material';
 }
-
+/*
+This function is launched when someone is spraying.
+*/
 MaterialScript.prototype.Spray = function(frametime){
 	var Logic = scene.GetEntityByName('Logic');
 	this.Player = scene.GetEntityByName(this.me.dynamiccomponent.GetAttribute('PlayerName'));
@@ -62,7 +66,7 @@ MaterialScript.prototype.Spray = function(frametime){
 		this.totalTime = 0;
 		var PlayerEn = scene.GetEntityByName(this.me.dynamiccomponent.GetAttribute('PlayerName'));
 		PlayerEn.dynamiccomponent.SetAttribute('rdyToSpray', false);
-		
+		PlayerEn.dynamiccomponent.SetAttribute('sprayFinished', true);
 		}
 		
 		

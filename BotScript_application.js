@@ -8,6 +8,7 @@ function BotScript(entity, comp) {
 	screenName = the name of the screen the player sprays.
 	totalLat, totalLon = Same thing as this.totals for the spraying function
 	this.players = starting value of players that have hovering text
+	sprayFinished = For the ws.py to know that when a sprayimg has been sprayed
 	*/
 	this.me = entity;
 	frame.Updated.connect(this, this.Update);
@@ -18,23 +19,23 @@ function BotScript(entity, comp) {
 	this.totals = new float3(0,0,0);
 	this.me.dynamiccomponent.CreateAttribute('float3', 'particlePos');
 	this.me.dynamiccomponent.CreateAttribute('string', 'screenName');
+	this.me.dynamiccomponent.CreateAttribute('bool', 'sprayFinished');
 	this.me.dynamiccomponent.SetAttribute('Spraying', false);
 	this.totalTime = 0;
 	this.totalLat = 0;
 	this.totalLon = 0;
 	this.players = 0;
-	
+	this.dyco = this.me.dynamiccomponent;
 }
-
+	/*
+	In this function we add the player some attachments, a hoodie and pants. Also we add some things to recognize them from each others.
+	*/		
 BotScript.prototype.AddAttachments = function(){
 	
 	var Players = scene.GetEntitiesWithComponent("EC_Script", "Player");
 	for (i in Players){
 		if(Players[i].dynamiccomponent.GetAttribute('Team') == 'Taistelutoverit' && Players[i].dynamiccomponent.GetAttribute('attachments') == false){
-			/*
-			In this function we add the player some attachments, a hoodie and pants. Also we add some things to recognize them from each others.
-			*/
-			
+			//Hoodie
 			var tm = Players[i].placeable.transform;
 			var attachment = scene.CreateEntity(scene.NextFreeId(),["EC_Placeable", "EC_Mesh", "EC_Name", "EC_AnimationController"]);
 			attachment.GetOrCreateComponent("EC_Script", 'Attachmentsplayer');
@@ -52,7 +53,7 @@ BotScript.prototype.AddAttachments = function(){
 			attachment.placeable.transform = tm;
 			Players[i].dynamiccomponent.SetAttribute('attachments', true);
 			
-			//Above this we add a hoodie, below ar the pants.
+			//Pants
 			var attachment = scene.CreateEntity(scene.NextFreeId(),["EC_Placeable", "EC_Mesh", "EC_Name", "EC_AnimationController", "EC_DynamicComponent"]);
 			attachment.name = Players[i].Name() + 'pants';
 			attachment.GetOrCreateComponent("EC_Script", 'Attachmentsplayer');
@@ -65,7 +66,6 @@ BotScript.prototype.AddAttachments = function(){
 			meshlist = ['male_trousers_texture_lightbrown.material'];
 			attachment.mesh.meshMaterial = meshlist;
 			
-			
 			var parentRef = attachment.placeable.parentRef;
 			parentRef.ref = Players[i];
 			attachment.placeable.parentRef = parentRef;
@@ -75,6 +75,7 @@ BotScript.prototype.AddAttachments = function(){
 			Players[i].dynamiccomponent.SetAttribute('attachments', true);
 			
 		}else if(Players[i].dynamiccomponent.GetAttribute('Team') == 'Kadunvaltaajat' && Players[i].dynamiccomponent.GetAttribute('attachments') == false){
+			//Hoodie
 			var tm = Players[i].placeable.transform;
 			var attachment = scene.CreateEntity(scene.NextFreeId(),["EC_Placeable", "EC_Mesh", "EC_Name", "EC_AnimationController"]);
 			attachment.GetOrCreateComponent("EC_Script", 'Attachmentsplayer');
@@ -91,7 +92,7 @@ BotScript.prototype.AddAttachments = function(){
 			tm.pos.y = -0.85;
 			attachment.placeable.transform = tm;
 			
-			
+			//Pants
 			var attachment = scene.CreateEntity(scene.NextFreeId(),["EC_Placeable", "EC_Mesh", "EC_Name", "EC_AnimationController", "EC_DynamicComponent"]);
 			attachment.name = Players[i].Name() + 'pants';
 			attachment.GetOrCreateComponent("EC_Script", 'Attachmentsplayer');
@@ -113,6 +114,7 @@ BotScript.prototype.AddAttachments = function(){
 			Players[i].dynamiccomponent.SetAttribute('attachments', true);
 			
 		}else if(Players[i].dynamiccomponent.GetAttribute('Team') == 'Kannuttajat' && Players[i].dynamiccomponent.GetAttribute('attachments') == false){
+			//Hoodie
 			var tm = Players[i].placeable.transform;
 			var attachment = scene.CreateEntity(scene.NextFreeId(),["EC_Placeable", "EC_Mesh", "EC_Name", "EC_AnimationController"]);
 			attachment.GetOrCreateComponent("EC_Script", 'Attachmentsplayer');
@@ -132,6 +134,7 @@ BotScript.prototype.AddAttachments = function(){
 			attachment.placeable.transform = tm;
 			Players[i].dynamiccomponent.SetAttribute('attachments', true);
 			
+			//Pants
 			var attachment = scene.CreateEntity(scene.NextFreeId(),["EC_Placeable", "EC_Mesh", "EC_Name", "EC_AnimationController", "EC_DynamicComponent"]);
 			attachment.name = Players[i].Name() + 'pants';
 			attachment.GetOrCreateComponent("EC_Script", 'Attachmentsplayer');
@@ -233,6 +236,7 @@ BotScript.prototype.MoveAvatar = function(frametime) {
 	this.totals = this value is used to check that if we have reached our goal, it gets the lats or lons depending if its lat or lon total. 
 	
 	*/
+	if(this.me.dynamiccomponent.GetAttribute("ifToWalk") == true && this.me.dynamiccomponent.GetAttribute("Busted") == false && this.me.dynamiccomponent.GetAttribute('Spraying') == false){
 		var time = frametime;
 		var speed = 5;
 		var pos = this.me.placeable.Position();
@@ -299,6 +303,7 @@ BotScript.prototype.MoveAvatar = function(frametime) {
 		if (this.totals.y > Math.abs(toMoves.y) || this.totals.x > Math.abs(toMoves.x)) {
 			this.me.dynamiccomponent.SetAttribute('ifToWalk', false);
 		}
+	}
 	
 }
 /*
@@ -306,17 +311,17 @@ This function updates the client side, enables the animations at the moment for 
 TODO: ANIMATION SYNCHRONIZATION IS MESSED ATM.
 */
 BotScript.prototype.UpdateClient = function(frametime){
-	print('asdsadsda');
 	var attachments = scene.GetEntitiesWithComponent("EC_Script", "Attachmentsplayer");
 	if (!attachments == null)
 		print('No attachments, sir');
 	
 	print(attachments);
-
+	//With these you can modify the players outlook, thin, muscular, fat are the 4 options. The number is the effect 1.0 being 100%.
 	this.me.mesh.SetMorphWeight("Morph_thin-arms-lower", 0.4);
 	this.me.mesh.SetMorphWeight("Morph_thin-arms-upper", 0.4);
 	this.me.mesh.SetMorphWeight("Morph_thin-legs-upper", 0.6);
 	this.me.mesh.SetMorphWeight("Morph_thin-legs-lower", 0.6);
+	//Adds animations for player + attachments.
 	for(i in attachments){
 		if (this.me.dynamiccomponent.GetAttribute("ifToWalk") == true && this.me.dynamiccomponent.GetAttribute("Busted") == false){
 		
@@ -346,95 +351,99 @@ This function is launched when player sends Spray() msg in websocketserver.py. I
 starts as he is within 5m of the destination. Spraying will happen for 5 seconds. Other scripts relational: PoliceScript.js, ParticleScript.js, TeamMaterial.js
 */
 BotScript.prototype.Spraying = function(frametime){
-	Logic = scene.GetEntityByName('Logic');
-	
-	var screen = scene.GetEntityByName(this.me.dynamiccomponent.GetAttribute('screenName'));
-	var particlePos = this.me.dynamiccomponent.GetAttribute('particlePos');
-	var tm = this.me.placeable.transform;
-	var gao = screen.mesh.GetAdjustOrientation();
-	var xNow = this.me.placeable.Position().x;
-	var zNow = this.me.placeable.Position().z;
-	var dlon = (particlePos.x - xNow) * 1000;
-	var dlat = (particlePos.z - zNow) * 1000;
-	var time = frametime;
-	var speed = 2;
-	var dist = Math.sqrt(Math.pow((xNow - particlePos.x), 2) + 
-					Math.pow((zNow - particlePos.z), 2));
-	if(dist > 50){
-		tm.pos.x = particlePos.x;
-		tm.pos.z = particlePos.z;
-		this.me.placeable.transform = tm;	
-		this.me.dynamiccomponent.SetAttribute('rdyToSpray', true);
-		this.me.dynamiccomponent.SetAttribute('ifToWalk', false);
-		this.me.dynamiccomponent.SetAttribute('Spraying', false);
-	}else{
-	
-		if (Math.abs(dlat) >= Math.abs(dlon)){
-			var ratioLon = Math.abs(dlon / dlat);
-			var ratioLat = 1;
+	//First check if player is busted.
+	if(this.me.dynamiccomponent.GetAttribute('Spraying') == true && this.me.dynamiccomponent.GetAttribute('Busted') == false){
 
-		}else{ //dlon > dlat
-			var ratioLat = Math.abs(dlat / dlon);
-			var ratioLon = 1
-		}
-		//Speed * time * ratio of distance. To go straight to the goal, not zig zag.
-		var lats = speed * time * ratioLat;
-		var lons = speed * time * ratioLon;
-
-		//Check if toMove x and y axis are negative or positive, different cases determine which way to go. 
-		//finalmovement becomes the tiny step we take each frametime towards our goal.
-		if (dlon >= 0)
-			var finalMovementx = xNow + lons;
-		else
-			var finalMovementx = xNow - lons;
-				
-		if (dlat >= 0)
-			var finalMovementz = zNow + lats;
-		else
-			var finalMovementz = zNow - lats;
-
-		this.totalLat += lats;
-		this.totalLon += lons;
-
-		//Add later a amount to be the maximum of movement and teleport to the destination.
+		Logic = scene.GetEntityByName('Logic');
 		
-		tm.pos.x = finalMovementx;
-		tm.pos.z = finalMovementz;
-		
-		var angleOfOrientation = Math.atan2(Math.abs(dlon), Math.abs(dlat));
-
-		if (dlat>=0 && dlon>=0){ 	
-			tm.rot.y = (Math.PI + angleOfOrientation) * (180/Math.PI);
-			tm.rot.y += 15;
-		}
-		else if (dlat>=0 && dlon<0){
-			tm.rot.y = (Math.PI - angleOfOrientation) * (180/Math.PI);
-			tm.rot.y +=15;
-		}
-		else if (dlat<0 && dlon>=0){ 
-			tm.rot.y = (2*Math.PI - angleOfOrientation) * (180/Math.PI);
-			tm.rot.y += 15;
-		}
-		else if (dlat<0 && dlon<0){ 
-			tm.rot.y = angleOfOrientation * (180/Math.PI);
-			tm.rot.y += 15;
-		}
-		this.me.placeable.transform = tm;	
-		this.me.dynamiccomponent.SetAttribute('ifToWalk', true);
-		
-		if (this.totalLon > Math.abs(dlat) || this.totalLat > Math.abs(dlon)) {
-			
+		var screen = scene.GetEntityByName(this.me.dynamiccomponent.GetAttribute('screenName'));
+		var particlePos = this.me.dynamiccomponent.GetAttribute('particlePos');
+		var tm = this.me.placeable.transform;
+		var gao = screen.mesh.GetAdjustOrientation();
+		var xNow = this.me.placeable.Position().x;
+		var zNow = this.me.placeable.Position().z;
+		var dlon = (particlePos.x - xNow) * 1000;
+		var dlat = (particlePos.z - zNow) * 1000;
+		var time = frametime;
+		var speed = 2;
+		var dist = Math.sqrt(Math.pow((xNow - particlePos.x), 2) + 
+						Math.pow((zNow - particlePos.z), 2));
+		if(dist > 50){
+			tm.pos.x = particlePos.x;
+			tm.pos.z = particlePos.z;
+			this.me.placeable.transform = tm;	
 			this.me.dynamiccomponent.SetAttribute('rdyToSpray', true);
 			this.me.dynamiccomponent.SetAttribute('ifToWalk', false);
 			this.me.dynamiccomponent.SetAttribute('Spraying', false);
-			tm.pos.x = particlePos.x;
-			tm.pos.z = particlePos.z;
-			this.me.placeable.transform = tm;
-			this.totalLat = 0;
-			this.totalLon = 0;
-			print('Spraying has ended, well done Sir.');
-			this.totalTime = 0;
-		}	
+		}else{
+		
+			if (Math.abs(dlat) >= Math.abs(dlon)){
+				var ratioLon = Math.abs(dlon / dlat);
+				var ratioLat = 1;
+
+			}else{ //dlon > dlat
+				var ratioLat = Math.abs(dlat / dlon);
+				var ratioLon = 1
+			}
+			//Speed * time * ratio of distance. To go straight to the goal, not zig zag.
+			var lats = speed * time * ratioLat;
+			var lons = speed * time * ratioLon;
+
+			//Check if toMove x and y axis are negative or positive, different cases determine which way to go. 
+			//finalmovement becomes the tiny step we take each frametime towards our goal.
+			if (dlon >= 0)
+				var finalMovementx = xNow + lons;
+			else
+				var finalMovementx = xNow - lons;
+					
+			if (dlat >= 0)
+				var finalMovementz = zNow + lats;
+			else
+				var finalMovementz = zNow - lats;
+
+			this.totalLat += lats;
+			this.totalLon += lons;
+
+			//Add later a amount to be the maximum of movement and teleport to the destination.
+			
+			tm.pos.x = finalMovementx;
+			tm.pos.z = finalMovementz;
+			
+			var angleOfOrientation = Math.atan2(Math.abs(dlon), Math.abs(dlat));
+
+			if (dlat>=0 && dlon>=0){ 	
+				tm.rot.y = (Math.PI + angleOfOrientation) * (180/Math.PI);
+				tm.rot.y += 15;
+			}
+			else if (dlat>=0 && dlon<0){
+				tm.rot.y = (Math.PI - angleOfOrientation) * (180/Math.PI);
+				tm.rot.y +=15;
+			}
+			else if (dlat<0 && dlon>=0){ 
+				tm.rot.y = (2*Math.PI - angleOfOrientation) * (180/Math.PI);
+				tm.rot.y += 15;
+			}
+			else if (dlat<0 && dlon<0){ 
+				tm.rot.y = angleOfOrientation * (180/Math.PI);
+				tm.rot.y += 15;
+			}
+			this.me.placeable.transform = tm;	
+			this.me.dynamiccomponent.SetAttribute('ifToWalk', true);
+			
+			if (this.totalLon > Math.abs(dlat) || this.totalLat > Math.abs(dlon)) {
+				
+				this.me.dynamiccomponent.SetAttribute('rdyToSpray', true);
+				this.me.dynamiccomponent.SetAttribute('ifToWalk', false);
+				this.me.dynamiccomponent.SetAttribute('Spraying', false);
+				tm.pos.x = particlePos.x;
+				tm.pos.z = particlePos.z;
+				this.me.placeable.transform = tm;
+				this.totalLat = 0;
+				this.totalLon = 0;
+				print('Spraying has ended, well done Sir.');
+				this.totalTime = 0;
+			}	
+		}
 	}
 }	
 /*
@@ -475,48 +484,61 @@ BotScript.prototype.BustEm = function(frametime){
 If a player is busted the following happens, this function is launched only if an external function changes the dynamiccomponent(busted)
 */
 BotScript.prototype.Busted = function(frametime){
-	//If player is busted, actions are halted for 5 seconds. 
-	this.me.dynamiccomponent.SetAttribute('Spraying', false);
-	this.me.dynamiccomponent.SetAttribute('ifToWalk', false);
-	this.me.dynamiccomponent.SetAttribute('rdyToSpray', false);
-	this.totalTime += frametime;
-	print('Player /n ' + this.me.Name() + 'Busted for 5 seconds');
-	
-	if (this.totalTime >= 5){
-		this.me.dynamiccomponent.SetAttribute('Busted', false);
-		this.totalTime = 0;
-		print('released');
+	if(this.me.dynamiccomponent.GetAttribute('Busted') == true){
+		//If player is busted, actions are halted for 5 seconds. 
+		this.me.dynamiccomponent.SetAttribute('Spraying', false);
+		this.me.dynamiccomponent.SetAttribute('ifToWalk', false);
+		this.me.dynamiccomponent.SetAttribute('rdyToSpray', false);
+		this.totalTime += frametime;
+		print('Player /n ' + this.me.Name() + 'Busted for 5 seconds');
+		
+		if (this.totalTime >= 5){
+			this.me.dynamiccomponent.SetAttribute('Busted', false);
+			this.totalTime = 0;
+			print('released');
+		}
 	}
 }
-
-// THIS IS THE WAY TO GET RID OF CRASHING AFTER ENTITY DELETION! Ran when phone sends a msg that user has disconnected
+/*
+This function deletes the connection for Update function first, then creates Connection boolean,
+as false after that WS.py will remove the entity that has been disconnected.
+*/
 BotScript.prototype.OnScriptObjectDestroyed = function(){
-    // Must remember to manually disconnect subsystem signals, otherwise they'll continue to get signalled
-    if (this.isServer)
-    {
-        frame.Updated.disconnect(this, this.Update);
-    }
-    else
-        frame.Updated.disconnect(this, this.Update);
-
+	print('onscriptdestroyed');
+	var Players = scene.GetEntitiesWithComponent('EC_Script', "Player");
+	for (i in Players){
+		if(Players[i].dynamiccomponent.GetAttribute('disconnected') == true){
+			// Must remember to manually disconnect subsystem signals, otherwise they'll continue to get signalled
+			if (this.isServer)
+			{
+				frame.Updated.disconnect(this, this.Update);
+			}
+			else
+				frame.Updated.disconnect(this, this.Update);
+				Players[i].dynamiccomponent.CreateAttribute('bool' ,'Connections');
+				// Remove the actual entity, since it has been disconnected
+			
+		}
+		
+	}
+	
 }
+
+
 
 BotScript.prototype.Update = function(frametime) {
 	if (server.IsRunning()){
+
 		this.AddAttachments();
 		this.BustEm(frametime);
 		this.AddHoveringText();
-		
-		if(this.me.dynamiccomponent.GetAttribute("ifToWalk") == true && this.me.dynamiccomponent.GetAttribute("Busted") == false && this.me.dynamiccomponent.GetAttribute('Spraying') == false)
-			this.MoveAvatar(frametime);
-		if(this.me.dynamiccomponent.GetAttribute('Spraying') == true && this.me.dynamiccomponent.GetAttribute('Busted') == false){
-			this.Spraying(frametime);
-		}
-		if(this.me.dynamiccomponent.GetAttribute('Busted') == true){
-			this.Busted(frametime);
-		}
-		
+		this.MoveAvatar(frametime);
+		this.Spraying(frametime);
+		this.Busted(frametime);
+		this.OnScriptObjectDestroyed();
+
 	}else
 		this.UpdateClient(frametime);
+		
 		
 }

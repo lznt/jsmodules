@@ -35,27 +35,28 @@ function PoliceScript (entity, comp){
 	this.setted = false;
 	this.curPos = random(rnd.length);
 	this.me.dynamiccomponent.CreateAttribute('string', 'PlayerName');
-	//Initialize positions
+	
+
 	/* Referencelist for numbers
-	1 = ASEMAKTORIK = array([65.014685,25.471802])
-	2 = ASEMAKKIRKK = array([65.014172,25.473626])
-	3 = ASEMAKISOK = array([65.013642,25.475589])
-	4 = ASEMAKUUSIK = array([65.013117,25.477477])
-	5 = TORIKHALLIK = array([65.013955,25.470729])
-	6 = KIRKKOKHALLIK = array([65.013484,25.472564])
-	7 = KIRKKOKHALLIK2 = array([65.013212,25.472209])
-	8 = ISOKHALLIK = array([65.012691,25.474184])
-	9 = TORIKPAKKAHK = array([65.013185,25.469527])
-	10 = KIRKKOKPAKKAHK = array([65.01265,25.471405])
-	11 = ISOKPAKKAHK = array([65.012124,25.473433])
-	12 = UUSIKPAKKAHK = array([65.011607,25.475353])
-	13 = TORIKKAUPPURIK = array([65.01231,25.468261])
-	14 = KIRKKOKKAUPPURIK = array([65.011798,25.470171])
-	15 = ISOKKAUPPURIK = array([65.011267,25.472134])
-	16 = UUSIKKAUPPURIK = array([65.010742,25.474119])
+	A = ASEMAKTORIK = array([65.014685,25.471802])
+	B = ASEMAKKIRKK = array([65.014172,25.473626])
+	C = ASEMAKISOK = array([65.013642,25.475589])
+	D = ASEMAKUUSIK = array([65.013117,25.477477])
+	E = TORIKHALLIK = array([65.013955,25.470729])
+	F = KIRKKOKHALLIK = array([65.013484,25.472564])
+	G = KIRKKOKHALLIK2 = array([65.013212,25.472209])
+	H = ISOKHALLIK = array([65.012691,25.474184])
+	I = TORIKPAKKAHK = array([65.013185,25.469527])
+	J = KIRKKOKPAKKAHK = array([65.01265,25.471405])
+	K = ISOKPAKKAHK = array([65.012124,25.473433])
+	L = UUSIKPAKKAHK = array([65.011607,25.475353])
+	M = TORIKKAUPPURIK = array([65.01231,25.468261])
+	N = KIRKKOKKAUPPURIK = array([65.011798,25.470171])
+	O = ISOKKAUPPURIK = array([65.011267,25.472134])
+	P = UUSIKKAUPPURIK = array([65.010742,25.474119])
 	*/
 	
-	//Init places to go.
+	//Init places to go and place them in this.points array.
 	this.points = [];
 	
 	A = new Object();
@@ -432,7 +433,7 @@ PoliceScript.prototype.BustAPlayer = function(frametime){
 PoliceScript.prototype.Update = function(frametime) {
 
 	if (server.IsRunning()){
-		
+		//Commented out because of attachments animations not syncing with the avatars
 		//this.AddAttachments();
 		
 		

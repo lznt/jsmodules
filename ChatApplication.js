@@ -35,21 +35,36 @@ ServerControl.prototype.UserConnected = function(cid, connection)
     var msg = GetClientUsername(connection) + " connected.";
     me.Exec(4, "ServerSendMessage", msg);
 }
-
+//Add here some if that if a "disconnect" dyco is true we check some name and remove the name from list.
+//Should be fairly easy. Check today - Lasse
 ServerControl.prototype.UserDisconnected = function(cid, connection)
 {
     var msg = GetClientUsername(connection) + " disconnected.";
-    
-    me.Exec(4, "ServerSendMessage", msg);
-    me.Exec(4, "RemoveUserFromList", GetClientUsername(connection));
-}
 
-ServerControl.prototype.Update = function(frametime)
-{
-	this.SocketUserAdded();
+	me.Exec(4, "ServerSendMessage", msg);
+	me.Exec(4, "RemoveUserFromList", GetClientUsername(connection));
 	
 }
 
+
+ServerControl.prototype.Update = function(frametime)
+{
+		this.SocketUserAdded();
+		this.SocketUserDisconnected();
+	
+}
+
+ServerControl.prototype.SocketUserDisconnected = function(){
+	var Players = scene.GetEntitiesWithComponent('EC_Script', 'Player');
+	for(i in Players){
+		if(Players[i].dynamiccomponent.GetAttribute('disconnected') == true)
+			me.Exec(4, "RemoveUserFromList", Players[i].name);
+			//Players[i].dynamiccomponent.SetAttribute('disconnected', false); 
+			
+				
+	}
+
+}
 //Receive incoming messages from client 
 //and pass it to all clients
 ServerControl.prototype.ClientMessage = function(sender, msg)
@@ -69,13 +84,18 @@ ServerControl.prototype.PrivateClientMessage = function(sender, receiver, msg)
 		var logic = scene.GetEntityByName('Logic');
         users = server.AuthenticatedUsers();
 		players = scene.GetEntitiesWithComponent('EC_Script', 'Player');
-        for(var i = 0; i < users.length; i++)
+        for(var i = 0; i < users.length; i++){
             if (users[i].GetProperty("username") == receiver)
                 users[i].Exec(scene.GetEntityByName("ChatApplication"), "ServerSendPrivateMessage", sender + ": " + msg);
+		}
+		/*
+		The actual logic for sending the msg to the phone. DynamicComponent needed for js and python to intervene with the msg.
+		If there is another way, might be better, but with the time i have this is it.
+		*/		
 		for(var i = 0; i < players.length; i++){
 			if(players[i].name == receiver){
-				logic.dynamiccomponent.SetAttribute('newMsg', true);
-				logic.dynamiccomponent.SetAttribute('msg', 'Privatemsg' + sender + ": " + msg);
+				players[i].dynamiccomponent.SetAttribute('newMsg', true);
+				players[i].dynamiccomponent.SetAttribute('msg', 'Privatemsg' + sender + ": " + msg);
 			
 			}
 		}		
@@ -89,26 +109,27 @@ ServerControl.prototype.ServerUpdateUserList = function(user)
     me.Exec(4, "UpdateUserList", user);
 }
 /*
-Figure out a way to remove players from list when entities are removed.
+Adds socketplayers to the chatlist.
 */
 ServerControl.prototype.SocketUserAdded = function (){
 	var log = scene.GetEntityByName('Logic');
 	var players = scene.GetEntitiesWithComponent('EC_Script', 'Player');
 
-	
-	if(log.dynamiccomponent.GetAttribute('newSocketPlayer') == true){
-		var player = log.dynamiccomponent.GetAttribute('Player');
-		connectedplrs[this.n] = player; 
-		this.n++;
-		log.dynamiccomponent.RemoveAttribute('Player');
-		log.dynamiccomponent.RemoveAttribute('newSocketPlayer');
-		while(!this.ServerUpdateUserList){
-			print('Not yet sir.');
+	for(i in players){
+		if(players[i].dynamiccomponent.GetAttribute('newSocketPlayer') == true){
+			connectedplrs[this.n] = players[i].name; 
+			this.n++;
+			players[i].dynamiccomponent.RemoveAttribute('Player');
+			players[i].dynamiccomponent.RemoveAttribute('newSocketPlayer');
+			while(!this.ServerUpdateUserList){
+				print('Not yet sir.');
+			}
+			this.ServerUpdateUserList(players[i].name);
 		}
-		this.ServerUpdateUserList(player);
 	}
-	
 }
+
+
 
 //Client side of the ChatApplication
 function ClientControl(userName)
@@ -230,9 +251,13 @@ ClientControl.prototype.UpdateUserList = function(user)
         userListWidget.addItem(user);
     }
 }
-
+/*
+Here need to add some clever logic to remove players from the chat list as their entities disappear.
+I will create an empty logic for it and later when the phone sends a msg when the app is closed we can control the logic.
+*/
 ClientControl.prototype.RemoveUserFromList = function(user)
-{
+{	
+
     var hasUser = false;
     var index = -1;
     for(var i = 0; i < userListWidget.count; i++)
@@ -433,6 +458,5 @@ function CreateUser()
     proxy.visible = true;
     chatControl = new ClientControl(userName);
 }
-
 
 

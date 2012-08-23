@@ -1,3 +1,7 @@
+/*
+NOT USED ATM!
+*/
+
 function WatcherScript(entity, comp){
 	this.me = entity;
 	frame.Updated.connect(this, this.Update);

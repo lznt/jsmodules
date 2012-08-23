@@ -48,16 +48,10 @@ ParticleScript.prototype.EnableSpray = function(frametime) {
 			}
 			
 		}
-			
 		
-			
 	}
 
 }
-	
-
-
-
 
 ParticleScript.prototype.Update = function(frametime) {
 	if (server.IsRunning()){

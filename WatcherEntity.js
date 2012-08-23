@@ -1,6 +1,7 @@
 function WatcherEntity(entity, comp){
 	//This is the script for realxtend to recognize watcherplayers and create them to scene.
 	//Users are hardcoded atm, in future they will be this way in the database.
+	
 	/*
 	VARIABLES:
 	players = an array that holds the player objects.
