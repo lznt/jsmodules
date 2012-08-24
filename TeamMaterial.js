@@ -66,7 +66,7 @@ MaterialScript.prototype.Spray = function(frametime){
 		this.totalTime = 0;
 		var PlayerEn = scene.GetEntityByName(this.me.dynamiccomponent.GetAttribute('PlayerName'));
 		PlayerEn.dynamiccomponent.SetAttribute('rdyToSpray', false);
-		PlayerEn.dynamiccomponent.SetAttribute('sprayFinished', true);
+		
 		}
 		
 		

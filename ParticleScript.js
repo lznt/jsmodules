@@ -43,8 +43,10 @@ ParticleScript.prototype.EnableSpray = function(frametime) {
 			if(this.totalTime > 5){
 				print(this.totalTime);
 				this.me.particlesystem.enabled = false;
+				this.me.particlesystem.enabled = false;
 				this.totalTime = 0;
 				this.me.dynamiccomponent.SetAttribute('Spraying', false);
+				Player.dynamiccomponent.SetAttribute('sprayFinished', true);
 			}
 			
 		}
