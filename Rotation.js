@@ -6,7 +6,10 @@ function RotateSomething(entity, comp) {
 	this.me.placeable.transform = tm;
 }
 
-
+/*
+This script is for the STATS HERE text to rotate in the air.
+Pretty self explaining.
+*/
 RotateSomething.prototype.Update = function(frametime) {
 	if (server.IsRunning()){
 		if (this.me.dynamiccomponent.GetAttribute('toRotate') == true){
