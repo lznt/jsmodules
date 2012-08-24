@@ -504,7 +504,6 @@ This function deletes the connection for Update function first, then creates Con
 as false after that WS.py will remove the entity that has been disconnected.
 */
 BotScript.prototype.OnScriptObjectDestroyed = function(){
-	print('onscriptdestroyed');
 	var Players = scene.GetEntitiesWithComponent('EC_Script', "Player");
 	for (i in Players){
 		if(Players[i].dynamiccomponent.GetAttribute('disconnected') == true){

@@ -2,7 +2,17 @@
 // !ref: local://JoinWidget.ui
 // !ref: local://UserList.ui
 // !ref: local://PrivateChatWidget.ui
+/*
+Qt chat ui for the game. Added some features to handle the JS and PY interaction through dynamiccomponents.
+SERVERSIDE
+SocketUserDisconnected
+PrivateClientMessage
+SocketUserAdded
+Update
 
+CLIENTSIDE
+ReceivePrivatePhoneMsg(NEED TO BE TESTED & FIXED)
+*/
 engine.ImportExtension("qt.core");
 engine.ImportExtension("qt.gui");
 engine.ImportExtension("qt.uitools");
@@ -13,7 +23,7 @@ this.connectedplrs = [];
 //Server shows the ChatWidget, but it's not able to use it to send own messages
 function ServerControl(comp)
 {
- 
+
   me.Action("ClientSendMessage").Triggered.connect(this, this.ClientMessage);
   me.Action("ClientSendPrivateMessage").Triggered.connect(this, this.PrivateClientMessage);
   me.Action("ServerUpdateUserList").Triggered.connect(this, this.ServerUpdateUserList);
@@ -143,7 +153,7 @@ function ClientControl(userName)
     me.Action("NewUserConnected").Triggered.connect(this, this.NewUserConnected);
     me.Action("UpdateUserList").Triggered.connect(this, this.UpdateUserList);
     me.Action("RemoveUserFromList").Triggered.connect(this, this.RemoveUserFromList);
-    
+    frame.Updated.connect(this, this.Update);
     buttonUserList.clicked.connect(this, this.ToggleUserList);
     userListWidget.itemDoubleClicked.connect(this, this.StartPrivateChat)
    
@@ -229,6 +239,31 @@ ClientControl.prototype.ReceivePrivateServerMessage = function(msg)
     privateChatLog.append(msg);
 }
 
+/*
+Can't test this yet, but pretty sure it adds the msg to all players in the scene.
+Need to find a way to distinguish them from each other. 
+*/
+ClientControl.prototype.ReceivePrivatePhoneMsg = function(){
+	var Players = scene.GetEntitiesWithComponent('EC_Script', 'Player');
+	print('here?');
+	for (i in Players){
+		if(Players[i].dynamiccomponent.GetAttribute('privMsg') == true){
+				this.ReceivePrivateServerMessage(Players[i].dynamiccomponent.GetAttribute('privmsg'));
+		}	
+		Players[i].dynamiccomponent.SetAttribute('privMsg', false);
+		
+	}
+}
+
+
+ClientControl.prototype.Update = function(frametime){
+	if (server.IsRunning()){
+		this.ReceivePrivatePhoneMsg();
+	
+	}
+
+}
+
 ClientControl.prototype.NewUserConnected = function(msg)
 {
     userListWidget.addItem(msg);
@@ -251,10 +286,7 @@ ClientControl.prototype.UpdateUserList = function(user)
         userListWidget.addItem(user);
     }
 }
-/*
-Here need to add some clever logic to remove players from the chat list as their entities disappear.
-I will create an empty logic for it and later when the phone sends a msg when the app is closed we can control the logic.
-*/
+
 ClientControl.prototype.RemoveUserFromList = function(user)
 {	
 
