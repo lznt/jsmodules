@@ -25,6 +25,7 @@ frame.Updated.connect(Update);
 
 var myHandler = function (myAsset) {
     Log("Successfully connected");
+    //Check if data on server has changed or not. No need to parse same data over and over again.
     if (String(myAsset.RawData()) == currentData) {
     	    Log("Nothing changed on serv.")
     	    return;
