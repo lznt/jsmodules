@@ -51,6 +51,7 @@ function checkVenue (venueData) {
 	//Check venue owner
 	if (venueGang == "Blue Angels" && plane) {
 		plane.mesh.materialRefs = new Array(graffitiLinks[0]);
+		plane.particles
 		Log("Found something by Blue Angels");
 	} else if (venueGang == "Purple Knights" && plane) {
 		plane.mesh.materialRefs = new Array(graffitiLinks[1]);
@@ -62,11 +63,16 @@ function checkVenue (venueData) {
 	
 	//Put spraying particle on, if venue is spraying.
 	var venueSpraying = venueData.sprayinginitialized;
-	if (venueSpraying == 1)
+	if (venueSpraying == 1 && plane) { 
+		if (venueGang == "Blue Angels") 
+			plane.particlesystem.particleRef = "http://meshmoon.eu.scenes.2.s3.amazonaws.com/mediateam-b4527d/test2/particle-graffiti-plane/bluespray.particle";
+		else if (venueGang == "Purple Knights")
+			plane.particlesystem.particleRef = "http://meshmoon.eu.scenes.2.s3.amazonaws.com/mediateam-b4527d/test2/particle-graffiti-plane/purplespray.particle";
+		else if (venueGang == "Green Shamans")
+			plane.particlesystem.particleRef = "http://meshmoon.eu.scenes.2.s3.amazonaws.com/mediateam-b4527d/test2/particle-graffiti-plane/greenspray.particle";
 		plane.particlesystem.enabled = true;
-	else
+	} else if (plane)
 		plane.particlesystem.enabled = false;
-	
 }
 
 //Change later to work serverside
