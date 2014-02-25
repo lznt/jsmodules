@@ -301,6 +301,7 @@ PoliceScript.prototype.MovePolice = function(frametime){
 	tm.pos.z = finalMovementz;
 	this.me.placeable.transform = tm;
 	
+	//Not working always!!!!!!
 	angleOfOrientation = Math.atan2(Math.abs(this.relativeLat), Math.abs(this.relativeLon));
 
 	if (this.relativeLat>=0 && this.relativeLon>=0){ 	
@@ -328,6 +329,7 @@ PoliceScript.prototype.MovePolice = function(frametime){
 	var xNow = pos.x;
 	var zNow = pos.z;
 	
+	//If we are at destination.
 	if (this.totalLat > Math.abs(this.relativeLat) || this.totalLon > Math.abs(this.relativeLon)) {
 		this.move = false;
 		this.calc = true;
@@ -353,6 +355,8 @@ PoliceScript.prototype.AddAttachments = function(){
 			var tm = attachment.placeable.transform;
 			attachment.placeable.SetScale(1.02, 1.02, 1.02);
 			attachment.SetTemporary(true);
+
+			//These add attachments for player. Not used prolly..
 			var meshlist = attachment.mesh.meshMaterial;
 			meshlist = ['male_trousers_texture_lightbrown.material'];
 			attachment.mesh.meshMaterial = meshlist;
@@ -396,6 +400,7 @@ PoliceScript.prototype.UpdateClient = function(frametime){
 }
 
 PoliceScript.prototype.BustAPlayer = function(frametime){
+	//Get players.
 	var Players = scene.GetEntitiesWithComponent('EC_Script', 'Player');
 	Logic = scene.GetEntityByName('Logic');
 	
@@ -408,8 +413,11 @@ PoliceScript.prototype.BustAPlayer = function(frametime){
 			xNow = this.me.placeable.Position().x;
 			zNow = this.me.placeable.Position().z;
 			var player = Players[i].Name();
+
+			//Get actual distance between players.
 			var dist = Math.sqrt(Math.pow((xNow - Players[i].placeable.Position().x), 2) + 
 				Math.pow((zNow - Players[i].placeable.Position().z), 2));
+			
 			Player = Players[i];
 			if(dist <= 25 && Players[i].dynamiccomponent.GetAttribute('Spraying')==true){
 				print (dist);

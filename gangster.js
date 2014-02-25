@@ -1,3 +1,6 @@
+/* Script for all players including the insertion of the player in to the scene and deletion when inactive. Appearance and current location is determined here.
+	If server has new info on player location, player is moved on 3D scene, so that it relates the actual GPS coordinates sent by players phone.  */
+
 // Include the json parse/stringify library. We host it here if you want to use it:
 // !ref: http://meshmoon.data.s3.amazonaws.com/app/lib/json2.js, Script
 
@@ -11,6 +14,8 @@ engine.IncludeFile("http://meshmoon.data.s3.amazonaws.com/app/lib/admino-utils-c
 
 SetLogChannelName("gangsterscript"); //this can be anything, but best is your aplication name
 Log("Script starting...");
+
+//All refs determining player appearance.
 var materialRefs = ["http://meshmoon.eu.scenes.2.s3.amazonaws.com/mediateam-b4527d/test2/avatars/avatar-blue/avatar-blue.material", 
 	"http://meshmoon.eu.scenes.2.s3.amazonaws.com/mediateam-b4527d/test2/avatars/avatar-green/avatar-green.material", 
 		"http://meshmoon.eu.scenes.2.s3.amazonaws.com/mediateam-b4527d/test2/avatars/avatar-purple/avatar-purple.material"];
@@ -20,12 +25,15 @@ var skeletonRefs = ["http://meshmoon.eu.scenes.2.s3.amazonaws.com/mediateam-b452
 var meshRefs = ["http://meshmoon.eu.scenes.2.s3.amazonaws.com/mediateam-b4527d/test2/avatars/avatar-blue/avatar-blue.mesh",
 	"http://meshmoon.eu.scenes.2.s3.amazonaws.com/mediateam-b4527d/test2/avatars/avatar-green/avatar-green.mesh",
 		"http://meshmoon.eu.scenes.2.s3.amazonaws.com/mediateam-b4527d/test2/avatars/avatar-purple/avatar-purple.mesh"];
-		 
+
+//Global variables to check if data on server has been changed. 
 var currentLat = 0;
 var currentLon = 0;	 
 var interval = 0;
-frame.Updated.connect(Update);
 var appearance;
+
+//Hook update function to frametime.
+frame.Updated.connect(Update);
 
 var myHandler = function (myAsset) {
     Log("successfully connected");
@@ -42,6 +50,32 @@ var myHandler = function (myAsset) {
 
 }
 
+//Make sure that only active users are shown in scene.
+var isAvatarActive = function() {
+	 var transfer = asset.RequestAsset("http://vm0063.virtues.fi/gangsters/", "Binary", true);
+     transfer.Succeeded.connect(function() {
+     	var json = JSON.parse(transfer.RawData());
+     	var activePlayers = asset.RequestAsset("http://vm0063.virtues.fi/gangsters/?active");
+     	activePlayers.Succeeded.connect(function() {
+     		var jsonactive = JSON.parse(activePlayers.RatData());
+
+     		//Loop for removing non-active players, have to test in real time to see how well ?active works on Django server.
+     		for (i = 0; i < jsonactive.length; i++) {
+     			for (i = 0; i < json.length; i++) {
+     				if (jsonactive.username == json.username) {
+     					return
+     				} else {
+						if (scene.EntityByName(json.username))
+     						scene.RemoveEntity(json.username);
+     				}
+     			}
+     		}
+     	});
+
+     });  
+
+}
+
 var addAvatar = function(user){
 	var avatarEntityName = user.username;
 	Log("Adding new player " + avatarEntityName);
@@ -49,20 +83,21 @@ var addAvatar = function(user){
 	if (scene.EntityByName(avatarEntityName)) {
 		Log("Entity already in Scene" + avatarEntityName);
 		var avatarEntity = scene.EntityByName(avatarEntityName);
+		//If player exists in scene and is currently spraying we dont want to change its GPS coordinates accordingly (TODO: TEXT IN ACTION!)
 		if (avatarEntity.dynamiccomponent.GetAttribute('spraying') == true)
 			return;
 	} else {
-		
+		//Check if player is active before adding it.
+		isAvatarActive();
 		var avatarEntity = scene.CreateEntity(scene.NextFreeId(), ["RigidBody", "Avatar", "Mesh", "Script", "Placeable", "AnimationController", "DynamicComponent"]);
 		avatarEntity.SetTemporary(true); // We never want to save the avatar entities to disk.               
 		avatarEntity.SetName(avatarEntityName);
 		avatarEntity.SetDescription(avatarEntityName);
 		avatarEntity.dynamiccomponent.CreateAttribute('bool', 'spraying');
 		avatarEntity.rigidbody.mass = 2;
-		avatarEntity.placeable.visible = false;
-		//appearance = avatarEntity.avatar.appearanceRef;
+		avatarEntity.placeable.visible = false;		
 		
-		
+		//Check user gangname and make appearance accordingly.
 		if (user.color == "green") {			
 			avatarEntity.mesh.materialRefs = new Array(materialRefs[1]);
 			avatarEntity.mesh.meshRef = meshRefs[1];
@@ -76,9 +111,11 @@ var addAvatar = function(user){
 			avatarEntity.mesh.materialRefs = new Array(materialRefs[2]);
 			avatarEntity.mesh.skeletonRef = skeletonRefs[2];
 		}
+		//Change angularFactor to 0,0,0 to make avatar mesh not fall over.
 		avatarEntity.rigidbody.angularFactor = new float3(0,0,0);
+
+		//Every player has a instance of Script entitys PlayerScript to control spraying activities.
 		var script = avatarEntity.script;
-		//script.scriptRef = new Array("http://meshmoon.eu.scenes.2.s3.amazonaws.com/mediateam-b4527d/test2/scripts/PlayerScript.js");
 		script.className = "SAGScripts.Player";
 		script.runOnLoad = true;
 	}
@@ -92,20 +129,23 @@ var addAvatar = function(user){
 	if (user.latitude == currentLat && user.longitude == currentLon)
 		return;
 	else {
+		lat = user.latitude;
+		lon = user.longitude;
+		
+		/*	CHECK LATER IF BRAINDEADBUGBYME!!
 		user.latitude = lat;
 		user.longitude = lon;
+		*/
 	}
 	
-	//Test values GinaTricot oulu.
+	//Test values GinaTricot Oulu.
 	var lat = 65.011802;
 	var lon = 25.472868;
 
-	//0,0 on the map.
+	//0,0 on the map, used for haversine calculator to get the 3D world coordinates to match GPS.
 	var latZero =  65.012115;
 	var lonZero = 25.473323;
-	//For testing, Near puistola. it seems that coordinates dont correlate to real world.
-	//var lat = 65.012577;
-	//var lon = 25.47171;
+
 	var longitudeInMeters = CalcLong(lonZero, lon, latZero, lat);
 	var latitudeInMeters = CalcLat(latZero, lat);
 
@@ -121,10 +161,12 @@ var addAvatar = function(user){
 	var placeable = avatarEntity.placeable;
 	var transform = placeable.transform;
 	transform.pos.x = longitudeInMeters;
-	transform.pos.y = 9,9; //Highest of Oulu3D
+	transform.pos.y = 9,9; //Highest of Oulu3D possible to make dynamic according to height???
 	transform.pos.z = latitudeInMeters;
 	placeable.transform = transform;
 
+
+	//Make animation stand(idle) animation if player is not currently spraying.
 	if (avatarEntity.dynamiccomponent.GetAttribute('spraying') == false)
 		avatarEntity.animationcontroller.PlayLoopedAnim('stand', 0, 'stand');
 	
@@ -162,8 +204,7 @@ function CalcLat(lat1, lat2){
 	return latitudeInMeters;
 }
 
-//TODO: make function that removes entities that are not on the ?active list.
-
+//Run function on serverside.
 function Update () {
     if (server.IsRunning()) {
         //GET active users

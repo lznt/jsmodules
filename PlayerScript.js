@@ -1,3 +1,6 @@
+//Script for all players representing the player in Oulu city to be drawn in Oulu 3D.
+//Includes animations and movement of spraying.
+
 // Include the json parse/stringify library. We host it here if you want to use it:
 // !ref: http://meshmoon.data.s3.amazonaws.com/app/lib/json2.js, Script
 
@@ -42,11 +45,13 @@ function checkIfPlayerIsSpraying(venues) {
 		interval ++;  
 }
 
+//Get data from venues, each at time.
 function haxMyMax (venueData) {
 	var gangsterSpraying = venueData.gangsterSpraying;
 
 	var latAndLon = [venueData.latitude, venueData.longitude];
 	var spraying = venueData.sprayinginitialized;
+	//Use all gangsters, ?active is not always on time.
 	var players = asset.RequestAsset("http://vm0063.virtues.fi/gangsters/","Binary", true);
 	players.Succeeded.connect(function(){
 		checkVenueAndPlayer(players, gangsterSpraying, latAndLon, spraying);
@@ -74,6 +79,7 @@ function checkVenueAndPlayer(players, gangsterSpraying, latAndLon, spraying) {
     	asset.ForgetAsset(players.name, true);
 }
 
+//On entity destroyed end script, no loops.
 Player.prototype.OnScriptDestroyed = function() {
 	frame.Updated.disconnect(this, this.Update);
 }
@@ -154,6 +160,7 @@ function CalcLat(lat1, lat2){
 	return latitudeInMeters;
 }
 
+//Run script on Clientside for animations to work always.
 Player.prototype.Update = function(frametime) {
 	if (server.IsRunning()) {
 		//GET venues    

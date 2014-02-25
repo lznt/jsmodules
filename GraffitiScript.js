@@ -11,9 +11,11 @@ engine.IncludeFile("http://meshmoon.data.s3.amazonaws.com/app/lib/class.js");
 engine.IncludeFile("http://meshmoon.data.s3.amazonaws.com/app/lib/admino-utils-common-deploy.js");
 SetLogChannelName("GraffitiScript"); //this can be anything, but best is your aplication name
 
-//Links for graffitimaterials.
+//Links for graffitimaterials at MediaTeam amazon.
 var graffitiLinks = ["http://meshmoon.eu.scenes.2.s3.amazonaws.com/mediateam-b4527d/test2/graffiti/blue.material",
 "http://meshmoon.eu.scenes.2.s3.amazonaws.com/mediateam-b4527d/test2/graffiti/purple.material", "http://meshmoon.eu.scenes.2.s3.amazonaws.com/mediateam-b4527d/test2/graffiti/green.material"];
+
+//Get Scene.
 var scene = me.ParentScene();
 //Interval so server is queried only once every 2seconds. (Roughly)
 var interval = 0;
@@ -46,15 +48,12 @@ function checkVenue (venueData) {
 	var venueName = venueData.name;
 	var venueGang = venueData.gang;
 	
-	//Syntax for graffitis
+	//Syntax for graffitiplane - name.
 	var plane = scene.EntityByName("graffiti-plane-" + venueName);
-	//Check venue owner
+	
+	//Check venue owner and plant the matRef accordingly.
 	if (venueGang == "Blue Angels" && plane) {
 		plane.mesh.materialRefs = new Array(graffitiLinks[0]);
-<<<<<<< HEAD
-=======
-		plane.particles
->>>>>>> 9d135cda9215bbb5c3a1d8559a146a38a78399a2
 		Log("Found something by Blue Angels");
 	} else if (venueGang == "Purple Knights" && plane) {
 		plane.mesh.materialRefs = new Array(graffitiLinks[1]);
@@ -74,27 +73,17 @@ function checkVenue (venueData) {
 		else if (venueGang == "Green Shamans")
 			plane.particlesystem.particleRef = "http://meshmoon.eu.scenes.2.s3.amazonaws.com/mediateam-b4527d/test2/particle-graffiti-plane/greenspray.particle";
 		plane.particlesystem.enabled = true;
-<<<<<<< HEAD
 	} else if (plane) {
-		
+		//If not spraying set particleRef to 0 to avoid cacheproblems and set enabled to false.
 		plane.particlesystem.enabled = false;
 		plane.particlesystem.particleRef = "";
 	}
-=======
-	} else if (plane)
-		plane.particlesystem.enabled = false;
->>>>>>> 9d135cda9215bbb5c3a1d8559a146a38a78399a2
 }
 
-//Change later to work serverside
+//Run script on serverside.
 function Update () {
-<<<<<<< HEAD
 	if (server.IsRunning()) {
-=======
-	if (!server.IsRunning()) {
->>>>>>> 9d135cda9215bbb5c3a1d8559a146a38a78399a2
 		//GET venues    
-		//Query server only every 2seconds ("roughly")
 		if (interval > 50) {
 			var transfer = asset.RequestAsset("http://vm0063.virtues.fi/venues/?active", "Binary", true);
 			transfer.Succeeded.connect(myHandler);
@@ -102,12 +91,6 @@ function Update () {
 		} else
 			interval ++;
 	} else {
-<<<<<<< HEAD
 		//Log("This is the client...");
 	}
 }
-=======
-		Log("This is the client...");
-	}
-}
->>>>>>> 9d135cda9215bbb5c3a1d8559a146a38a78399a2
