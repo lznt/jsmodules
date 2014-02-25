@@ -7,6 +7,7 @@
 // Include our utils script that has asset storage and bytearray utils etc.
 // !ref: http://meshmoon.data.s3.amazonaws.com/app/lib/admino-utils-common-deploy.js, Script
 // !ref: http://meshmoon.data.s3.amazonaws.com/app/lib/class.js, Script
+
 function Player(entity, comp) {
 	this.me = entity;
 	engine.IncludeFile("http://meshmoon.data.s3.amazonaws.com/app/lib/class.js");
