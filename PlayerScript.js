@@ -1,21 +1,25 @@
-//Script for all players representing the player in Oulu city to be drawn in Oulu 3D.
-//Includes animations and movement of spraying.
-
 // Include the json parse/stringify library. We host it here if you want to use it:
 // !ref: http://meshmoon.data.s3.amazonaws.com/app/lib/json2.js, Script
 
 // Include our utils script that has asset storage and bytearray utils etc.
 // !ref: http://meshmoon.data.s3.amazonaws.com/app/lib/admino-utils-common-deploy.js, Script
 // !ref: http://meshmoon.data.s3.amazonaws.com/app/lib/class.js, Script
+var currentLatitude = null;
+var currentLongitude = null;
+var currentVenues = null;
 
 function Player(entity, comp) {
 	this.me = entity;
 	engine.IncludeFile("http://meshmoon.data.s3.amazonaws.com/app/lib/class.js");
 	engine.IncludeFile("http://meshmoon.data.s3.amazonaws.com/app/lib/admino-utils-common-deploy.js");
 	SetLogChannelName("PlayerScript"); //this can be anything, but best is your aplication name
+	//Hook frame update to Update function.
 	frame.Updated.connect(this, this.Update);
+	//Interval to limit update to 2secs
 	var interval;
+	//Current data from server, to know if anything has changed.
 	var currentData;
+	//Save variables to self, coordinates, spraying boolean and which gangster is spraying.
 	this.latAndLon = [];
 	this.spraying;
 	this.gangsterSpraying;
@@ -24,76 +28,76 @@ function Player(entity, comp) {
 }
 
 
-//Get data from server as JSON and iterate it, then call checkVenue for further proceedings. (Checked)
+//Get data from server as JSON and iterate it, then call saveVenueGetGangsters for further proceedings. (Checked)
 function checkIfPlayerIsSpraying(venues) {
-	if (interval > 50) {
-		venues.name = "asset"
-		//Check if data on server has changed or not. No need to parse same data over and over again.
-		if (String(venues.RawData()) == currentData) {
-			interval = 0;
-			return;
-		} else
-    			currentData = String(venues.RawData());
-    		//Make sure venuedata is parseable.
-    		var data = JSON.parse(venues.RawData());
-    		for(var i=0; i<data.length; ++i) {
-    			haxMyMax(data[i]);
-   			}
-   		asset.ForgetAsset(venues.name, true);	
-		interval = 0;
-
-	} else
-		interval ++;  
+	//Make sure we dont parse data if it has not been changed.
+	if (currentVenues == venues.RawData())
+		return;
+	else
+        currentVenues = venues.RawData();
+	venues.name = "asset";
+	var data = JSON.parse(venues.RawData());
+	for(var i=0; i<data.length; ++i) {
+		saveVenueGetGangsters(data[i]);
+	}
+		//asset.ForgetAsset(venues.name, true);
+	
 }
 
-//Get data from venues, each at time.
-function haxMyMax (venueData) {
+//Function that collects data from venueData and requests more data from server (gangsters)
+function saveVenueGetGangsters (venueData) {
+	//Get name for venue.
+	var venueName = venueData.name;
+	//Gangster currently spraying the venue.
 	var gangsterSpraying = venueData.gangsterSpraying;
-
+	//Latitude and longitude of current venue.
 	var latAndLon = [venueData.latitude, venueData.longitude];
+	//Boolean to know if spraying is initialized for this venue.
 	var spraying = venueData.sprayinginitialized;
-	//Use all gangsters, ?active is not always on time.
+	//All players in the system, this because ?active is not always on time or can remove players really fast
+	// if they idle.
 	var players = asset.RequestAsset("http://vm0063.virtues.fi/gangsters/","Binary", true);
+	//If we got data we call checkVenueAndPlayer and pass needed variables.
 	players.Succeeded.connect(function(){
-		checkVenueAndPlayer(players, gangsterSpraying, latAndLon, spraying);
+		checkVenueAndPlayer(players, gangsterSpraying, latAndLon, spraying, venueName);
 	});
 }
 
-function checkVenueAndPlayer(players, gangsterSpraying, latAndLon, spraying) {
-	if (players)
-		players.name = 'playersAsset';
 
+//This function will check if player is actually spraying this venue and if he exists in the scene(is active or not)
+function checkVenueAndPlayer(players, gangsterSpraying, latAndLon, spraying, venueName) {
 	var data = JSON.parse(players.RawData());
     	for(var i=0; i<data.length; ++i) {
+    		//If the ID from venue matches to this current player.
     		if (data[i].id == gangsterSpraying) {
     			var player = scene.EntityByName(data[i].username);    			
-
-    			Log("Gangster is " + player.name + " from server " + data[i].username);
-
+    			
+    			//If player exists in scene.
     			if (player) {
-    				Log("Is someone spraying ? " + player.name);
     				player.dynamiccomponent.SetAttribute("spraying", true);
-    				movePlayer(player, latAndLon);
-    			}
+    				//Call moveplayer with desired data.
+    				movePlayer(player, latAndLon, venueName);
+    			} else 
+                    Log('No initial players in scene. ' + player);
     		}
     	}
-    	asset.ForgetAsset(players.name, true);
+    	//asset.ForgetAsset(players.name, true);
 }
 
-//On entity destroyed end script, no loops.
-Player.prototype.OnScriptDestroyed = function() {
-	frame.Updated.disconnect(this, this.Update);
-}
-
-function movePlayer(player, latAndLon) {
-	//0,0 on the map. 
+//Function to move player to the spraying destination.
+/* Variables:
+	latZero, lonZero = 0 coordinates on 3D map. 
+	longitudeInMeters, latitudeInMeters = gps coordinates to match 3d scene values with Haversine formula (CalcLong & CalcLat).
+	dlon, dlat = Check in which Quart the coordinates are.
+	latAndLon[] = array to hold in coordinates where player is moving. Index 0 is latitude and 1 is longitude.
+	placeable, transform = player placeable object to assign coordinates in 3d World.
+	plane = The plane to which player is spraying, saved to a variable for orientation.
+	*/
+function movePlayer(player, latAndLon, venueName) {
+    Log('We set the venueSprayed to player with value ' + venueName);
+    player.dynamiccomponent.SetAttribute('venueSprayed', venueName);
 	var latZero =  65.012115;
 	var lonZero = 25.473323;
-
-	//Near letku puisto for testing.
-	latAndLon[0] = 65.012981;
-	latAndLon[1] = 25.473173;	
-	//Hardcoded values for testing.
 
 	var longitudeInMeters = CalcLong(lonZero, latAndLon[1], latZero, latAndLon[0]);
 	var latitudeInMeters = CalcLat(latZero, latAndLon[0]);
@@ -101,36 +105,57 @@ function movePlayer(player, latAndLon) {
 	var dlon = latAndLon[1] - lonZero;
 	var dlat = latAndLon[0] - latZero;
 
+          
+          
+	var gps = player.dynamiccomponent.GetAttribute('posGPS');
+	gps.x = latAndLon[1];
+	gps.z = latAndLon[0];
+	player.dynamiccomponent.SetAttribute('posGPS', new float3(gps.x, 0, gps.z));
+          Log(player.dynamiccomponent.GetAttribute('posGPS') + " GPS coordinates in player when spraying");
+
+	//Set to null for next time.
 	latAndLon[0] = null;
 	latAndLon[1] = null;
-
+	
+//Check in which quarter values are.
 	if (dlon < 0) 
 		longitudeInMeters = -longitudeInMeters;
 	if (dlat > 0)
 		latitudeInMeters = -latitudeInMeters;
-	Log("Player " + this.me.name + " is spraying and we are moving him to " + latitudeInMeters + " -- " + longitudeInMeters);
 
 	var placeable = player.placeable;
 	var transform = placeable.transform;
-	transform.pos.x = longitudeInMeters;
-	transform.pos.y = 9,9; //Highest of Oulu3D
-	transform.pos.z = latitudeInMeters;
-	placeable.transform = transform;
-	
-	Log("lat and lon" + placeable.transform);
-	player.animationcontroller.StopAllAnims(0);
-	player.animationcontroller.PlayAnim('spray', 0, 'spray');
 
+	//Change robo to sprayed plane
+	var plane = scene.EntityByName("graffiti-plane-" + venueName);
+	transform.pos.x = longitudeInMeters;
+	transform.pos.y = 7; //Highest of Oulu3D
+	transform.pos.z = latitudeInMeters;
+	placeable.SetOrientation(lookAtPoint(player.placeable.WorldPosition(), new float3(player.placeable.Position().x, plane.placeable.WorldPosition().y, player.placeable.Position().z)));
+	//Assign new values to player placeable object.
+	placeable.transform = transform;
+
+	
+    Log(plane + " and who " + player);
+	//Enable spraying animation.
+	player.animationcontroller.EnableExclusiveAnimation('spray', false, 1, 1, false);
+          //Use lookAt to rotate player to look at the target.
+
+	//When animation has finished stop animations and play stand animation.
 	player.animationcontroller.AnimationFinished.connect(function(){
-		player.animationcontroller.StopAllAnims(0);
-		
-		//Do this later back on when the phone actually gives valid gps info.
-		//player.dynamiccomponent.SetAttribute('spraying', false);
-		player.animationcontroller.PlayLoopedAnim('stand', 0, 'stand');
+		player.dynamiccomponent.SetAttribute('spraying', false);
+		player.animationcontroller.EnableExclusiveAnimation('stand', true, 1, 1, false);
 	});
 }	
 
+function lookAtPoint(from, what) {
+    var targetLookatDir = what.Sub(from);
+    targetLookatDir = targetLookatDir.Normalized();
+    var endRot = Quat.LookAt(scene.ForwardVector(), targetLookatDir, scene.UpVector(), scene.UpVector());
+    return endRot;
+}
 
+//Haversine formula calculation functions to make GPS coordinates into 3d world coordinates.
 function CalcLong(lon1, lon2, lat1, lat2){
 	var radius = 6371; // km
 	var dlat = 0;
@@ -145,6 +170,7 @@ function CalcLong(lon1, lon2, lat1, lat2){
 	return longitudeInMeters;
 }
 
+//Haversine formula calculation functions to make GPS coordinates into 3d world coordinates.
 function CalcLat(lat1, lat2){
 	var radius = 6371; //km
 
@@ -161,13 +187,14 @@ function CalcLat(lat1, lat2){
 	return latitudeInMeters;
 }
 
-//Run script on Clientside for animations to work always.
 Player.prototype.Update = function(frametime) {
-	if (server.IsRunning()) {
-		//GET venues    
+	if (!server.IsRunning()) {
+		//GET venues
+            
+                var transfer = asset.RequestAsset("http://vm0063.virtues.fi/venues/?active", "Binary", true);
+                transfer.Succeeded.connect(checkIfPlayerIsSpraying);
+            
 	} else {
-		var transfer = asset.RequestAsset("http://vm0063.virtues.fi/venues/?active", "Binary", true);
-		transfer.Succeeded.connect(checkIfPlayerIsSpraying);
-
+	//NOthing on srv side atm.
 	}	
 }
